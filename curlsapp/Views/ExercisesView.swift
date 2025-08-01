@@ -8,14 +8,20 @@
 import SwiftUI
 
 struct ExercisesView: View {
+    @State private var exerciseStore = ExerciseStore()
+    
     var body: some View {
         NavigationStack {
-            VStack {
-                Text("Exercise Library")
-                    .font(.title2)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
+            List(exerciseStore.exercises) { exercise in
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(exercise.name.capitalized)
+                        .font(.headline)
+                    
+                    Text(exercise.targetMuscles.joined(separator: ", ").capitalized)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 4)
             }
             .navigationTitle("Exercises")
         }
