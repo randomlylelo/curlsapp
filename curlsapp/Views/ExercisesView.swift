@@ -13,15 +13,17 @@ struct ExercisesView: View {
     var body: some View {
         NavigationStack {
             List(exerciseStore.exercises) { exercise in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(exercise.name.capitalized)
-                        .font(.headline)
-                    
-                    Text(exercise.targetMuscles.joined(separator: ", ").capitalized)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                NavigationLink(destination: ExerciseDetailView(exercise: exercise)) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(exercise.name.capitalized)
+                            .font(.headline)
+                        
+                        Text(exercise.targetMuscles.joined(separator: ", ").capitalized)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
             }
             .navigationTitle("Exercises")
         }
