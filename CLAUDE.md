@@ -1,1 +1,2 @@
 - Whenever you finish a task make sure to build the project, if it fails to build, iterate until it works.
+- When testing using xcodebuild use iPhone16
