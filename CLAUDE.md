@@ -20,7 +20,8 @@ curlsapp/
 │   │   │   └── ExerciseDetailViewModel.swift # Exercise detail business logic
 │   │   ├── Views/
 │   │   │   ├── ExercisesView.swift          # Exercise list UI
-│   │   │   └── ExerciseDetailView.swift     # Exercise detail UI
+│   │   │   ├── ExerciseDetailView.swift     # Exercise detail UI
+│   │   │   └── BodyDiagramView.swift        # Interactive body diagram component
 │   │   └── Services/
 │   │       └── ExerciseService.swift        # Exercise data operations
 │   ├── WorkoutSession/                      # Active workout tracking feature
@@ -30,13 +31,11 @@ curlsapp/
 │       └── Views/
 │           └── WorkoutView.swift            # Active workout UI (placeholder)
 ├── Shared/
-│   ├── Models/
-│   │   ├── BodyPart.swift                   # Body part definitions
-│   │   ├── BodyBack.swift                   # Back body diagram data
-│   │   ├── BodyFront.swift                  # Front body diagram data
-│   │   └── ExtendedBodyPart.swift           # Enhanced body part model
-│   └── Components/
-│       └── PlaceholderImageView.swift       # Reusable body diagram component
+│   └── Models/
+│       ├── BodyPart.swift                   # Body part definitions
+│       ├── BodyBack.swift                   # Back body diagram data
+│       ├── BodyFront.swift                  # Front body diagram data
+│       └── ExtendedBodyPart.swift           # Enhanced body part model
 └── Resources/
     └── Data/
         ├── exercises.json                   # Exercise database

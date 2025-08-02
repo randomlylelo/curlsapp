@@ -25,7 +25,7 @@ struct ExerciseDetailView: View {
                     .fontWeight(.bold).padding(.bottom, 20)
                 
                 // Interactive body diagram
-                PlaceholderImageView(
+                BodyDiagramView(
                     selectedBodyParts: viewModel.getSelectedBodyParts(),
                     colors: ["#0984e3", "#74b9ff"],
                     border: "#dfdfdf"

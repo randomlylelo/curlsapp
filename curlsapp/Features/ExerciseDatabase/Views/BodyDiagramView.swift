@@ -1,5 +1,5 @@
 //
-//  PlaceholderImageView.swift
+//  BodyDiagramView.swift
 //  curlsapp
 //
 //  Created by Leo on 8/1/25.
@@ -9,7 +9,7 @@ import SwiftUI
 import WebKit
 
 /// A SwiftUI view that displays an interactive body diagram with selectable body parts
-struct PlaceholderImageView: View {
+struct BodyDiagramView: View {
     // MARK: - Constants
     private static let defaultColors = ["#0984e3", "#74b9ff"]
     private static let defaultBorder = "#dfdfdf"
@@ -25,8 +25,8 @@ struct PlaceholderImageView: View {
     // MARK: - Initialization
     init(
         selectedBodyParts: [ExtendedBodyPart] = [],
-        colors: [String] = PlaceholderImageView.defaultColors,
-        border: String = PlaceholderImageView.defaultBorder,
+        colors: [String] = BodyDiagramView.defaultColors,
+        border: String = BodyDiagramView.defaultBorder,
         onBodyPartPress: ((ExtendedBodyPart, BodySide?) -> Void)? = nil
     ) {
         self.selectedBodyParts = selectedBodyParts
@@ -305,7 +305,7 @@ struct BodyWebView: UIViewRepresentable {
 }
 
 #Preview {
-    PlaceholderImageView(
+    BodyDiagramView(
         selectedBodyParts: [
             ExtendedBodyPart(slug: .chest, intensity: 1),
             ExtendedBodyPart(slug: .biceps, intensity: 2, side: .left)
