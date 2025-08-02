@@ -1,5 +1,6 @@
 - Whenever you finish a task make sure to build the project, if it fails to build, iterate until it works.
 - When testing using xcodebuild use iPhone16
+- When designing and coding keep the principal of Steve Job's simplicity in mind. the product should be simple and beautiful inside and outside.
 
 # Project Architecture: Feature-Based Structure
 
@@ -76,4 +77,3 @@ When expanding WorkoutSession and WorkoutHistory features:
 2. Follow same structure: Models, ViewModels, Views, Services
 3. Move business logic from placeholder Views into proper ViewModels
 4. Create Services for workout data persistence and tracking
-
