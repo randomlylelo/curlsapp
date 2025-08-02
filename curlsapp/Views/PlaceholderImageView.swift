@@ -19,7 +19,6 @@ struct PlaceholderImageView: View {
     // MARK: - Properties
     let selectedBodyParts: [ExtendedBodyPart]
     let colors: [String]
-    let side: ViewSide
     let border: String
     let onBodyPartPress: ((ExtendedBodyPart, BodySide?) -> Void)?
     
@@ -27,28 +26,38 @@ struct PlaceholderImageView: View {
     init(
         selectedBodyParts: [ExtendedBodyPart] = [],
         colors: [String] = PlaceholderImageView.defaultColors,
-        side: ViewSide = .front,
         border: String = PlaceholderImageView.defaultBorder,
         onBodyPartPress: ((ExtendedBodyPart, BodySide?) -> Void)? = nil
     ) {
         self.selectedBodyParts = selectedBodyParts
         self.colors = colors
-        self.side = side
         self.border = border
         self.onBodyPartPress = onBodyPartPress
     }
     
     // MARK: - Body
     var body: some View {
-        BodyWebView(
-            selectedBodyParts: selectedBodyParts,
-            colors: colors,
-            side: side,
-            border: border,
-            onBodyPartPress: onBodyPartPress
-        )
-        .frame(height: Self.defaultHeight)
-        .cornerRadius(Self.defaultCornerRadius)
+        HStack(spacing: 8) {
+            BodyWebView(
+                selectedBodyParts: selectedBodyParts,
+                colors: colors,
+                side: .front,
+                border: border,
+                onBodyPartPress: onBodyPartPress
+            )
+            .frame(height: Self.defaultHeight)
+            .cornerRadius(Self.defaultCornerRadius)
+            
+            BodyWebView(
+                selectedBodyParts: selectedBodyParts,
+                colors: colors,
+                side: .back,
+                border: border,
+                onBodyPartPress: onBodyPartPress
+            )
+            .frame(height: Self.defaultHeight)
+            .cornerRadius(Self.defaultCornerRadius)
+        }
     }
 }
 
@@ -306,7 +315,6 @@ struct BodyWebView: UIViewRepresentable {
             ExtendedBodyPart(slug: .chest, intensity: 1),
             ExtendedBodyPart(slug: .biceps, intensity: 2, side: .left)
         ],
-        side: .back,
         border: "#dfdfdf"
     )
     .padding()
