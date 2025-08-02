@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct ExercisesView: View {
-    @State private var exerciseStore = ExerciseStore()
+    @State private var viewModel = ExercisesViewModel()
     
     var body: some View {
         NavigationStack {
-            List(exerciseStore.exercises) { exercise in
+            List(viewModel.filteredExercises) { exercise in
                 NavigationLink(destination: ExerciseDetailView(exercise: exercise)) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(exercise.name.capitalized)
@@ -26,6 +26,15 @@ struct ExercisesView: View {
                 }
             }
             .navigationTitle("Exercises")
+            .searchable(text: $viewModel.searchText, prompt: "Search exercises...")
+            .refreshable {
+                await viewModel.loadExercises()
+            }
+            .overlay {
+                if viewModel.isLoading {
+                    ProgressView("Loading exercises...")
+                }
+            }
         }
     }
 }

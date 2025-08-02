@@ -1,13 +1,14 @@
 //
-//  ExerciseDetailView.swift
+//  ExerciseDetailViewModel.swift
 //  curlsapp
 //
 //  Created by Leo on 8/1/25.
 //
 
-import SwiftUI
+import Foundation
 
-struct ExerciseDetailView: View {
+@Observable
+class ExerciseDetailViewModel {
     let exercise: Exercise
     
     // Mapping dictionary to translate exercises.json body parts to Slug enum values
@@ -55,74 +56,12 @@ struct ExerciseDetailView: View {
         "sternocleidomastoid": .neck
     ]
     
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Exercise name
-                Text(exercise.name.capitalized)
-                    .font(.largeTitle)
-                    .fontWeight(.bold).padding(.bottom, 20)
-                
-                // Interactive body diagram
-                PlaceholderImageView(
-                    selectedBodyParts: getSelectedBodyParts(),
-                    colors: ["#0984e3", "#74b9ff"],
-                    border: "#dfdfdf"
-                )
-                .frame(height: 300)
-                
-                VStack(alignment: .leading, spacing: 16) {
-                    
-                    
-                    // Target muscles
-                    HStack {
-                        Text("Target:")
-                            .fontWeight(.semibold)
-                        Text(exercise.targetMuscles.joined(separator: ", ").capitalized)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    // Equipment
-                    if !exercise.equipments.isEmpty {
-                        HStack {
-                            Text("Equipment:")
-                                .fontWeight(.semibold)
-                            Text(exercise.equipments.joined(separator: ", ").capitalized)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    
-                    // Instructions
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Instructions")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        
-                        ForEach(Array(exercise.instructions.enumerated()), id: \.offset) { index, instruction in
-                            HStack(alignment: .top, spacing: 12) {
-                                Text("\(index + 1)")
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.accentColor)
-                                    .frame(width: 24, alignment: .leading)
-                                
-                                Text(instruction.replacingOccurrences(of: "Step:\(index + 1) ", with: ""))
-                                    .lineLimit(nil)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                    }
-                    .padding(.top, 8)
-                }
-            }
-            .padding()
-        }
-        .navigationTitle("")
-        .navigationBarTitleDisplayMode(.inline)
+    init(exercise: Exercise) {
+        self.exercise = exercise
     }
     
     // Helper function to convert exercise body parts to ExtendedBodyPart objects
-    private func getSelectedBodyParts() -> [ExtendedBodyPart] {
+    func getSelectedBodyParts() -> [ExtendedBodyPart] {
         var selectedParts: [ExtendedBodyPart] = []
         
         // Process target muscles with highest intensity
@@ -177,23 +116,22 @@ struct ExerciseDetailView: View {
         
         return nil
     }
-}
-
-#Preview {
-    NavigationStack {
-        ExerciseDetailView(exercise: Exercise(
-            exerciseId: "sample",
-            name: "sample exercise",
-            gifUrl: "",
-            targetMuscles: ["chest", "triceps"],
-            bodyParts: ["upper body"],
-            equipments: ["barbell"],
-            secondaryMuscles: ["shoulders"],
-            instructions: [
-                "Step:1 Set up the equipment",
-                "Step:2 Perform the movement",
-                "Step:3 Return to starting position"
-            ]
-        ))
+    
+    var formattedTargetMuscles: String {
+        exercise.targetMuscles.joined(separator: ", ").capitalized
+    }
+    
+    var formattedEquipments: String {
+        exercise.equipments.joined(separator: ", ").capitalized
+    }
+    
+    var exerciseName: String {
+        exercise.name.capitalized
+    }
+    
+    func formattedInstruction(at index: Int) -> String {
+        guard index < exercise.instructions.count else { return "" }
+        let instruction = exercise.instructions[index]
+        return instruction.replacingOccurrences(of: "Step:\(index + 1) ", with: "")
     }
 }
