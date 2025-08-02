@@ -58,19 +58,21 @@ struct ExerciseDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
+                // Exercise name
+                Text(exercise.name.capitalized)
+                    .font(.largeTitle)
+                    .fontWeight(.bold).padding(.bottom, 20)
+                
                 // Interactive body diagram
                 PlaceholderImageView(
                     selectedBodyParts: getSelectedBodyParts(),
                     colors: ["#0984e3", "#74b9ff"],
                     border: "#dfdfdf"
                 )
-                .frame(height: 400)
+                .frame(height: 300)
                 
                 VStack(alignment: .leading, spacing: 16) {
-                    // Exercise name
-                    Text(exercise.name.capitalized)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                    
                     
                     // Target muscles
                     HStack {

@@ -173,21 +173,16 @@ struct BodyWebView: UIViewRepresentable {
             background: transparent;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
+            align-items: flex-start;
+            height: 85vh;
         }
         svg {
             max-width: 100%;
-            height: 100vh;
-        }
-        .body-part {
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .body-part:hover {
-            opacity: 0.8;
+            height: auto;
         }
         """
+        // border-style: "solid";
+        // to debug^
     }
     // MARK: - Private Methods
     
