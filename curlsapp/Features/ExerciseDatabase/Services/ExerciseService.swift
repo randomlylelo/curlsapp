@@ -26,7 +26,7 @@ class ExerciseService {
     }
     
     func exercisesByMuscleGroup(_ exercises: [Exercise], muscle: String) -> [Exercise] {
-        exercises.filter { $0.targetMuscles.contains(muscle.lowercased()) }
+        exercises.filter { $0.primaryMuscles.contains(muscle.lowercased()) }
     }
     
     func searchExercises(_ exercises: [Exercise], query: String) -> [Exercise] {
@@ -35,8 +35,10 @@ class ExerciseService {
         let lowercaseQuery = query.lowercased()
         return exercises.filter { exercise in
             exercise.name.lowercased().contains(lowercaseQuery) ||
-            exercise.targetMuscles.contains { $0.lowercased().contains(lowercaseQuery) } ||
-            exercise.bodyParts.contains { $0.lowercased().contains(lowercaseQuery) }
+            exercise.primaryMuscles.contains { $0.lowercased().contains(lowercaseQuery) } ||
+            exercise.secondaryMuscles.contains { $0.lowercased().contains(lowercaseQuery) } ||
+            exercise.category.lowercased().contains(lowercaseQuery) ||
+            (exercise.equipment?.lowercased().contains(lowercaseQuery) ?? false)
         }
     }
 }

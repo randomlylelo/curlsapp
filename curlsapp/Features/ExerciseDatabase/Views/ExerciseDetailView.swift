@@ -42,7 +42,7 @@ struct ExerciseDetailView: View {
                     }
                     
                     // Equipment
-                    if !exercise.equipments.isEmpty {
+                    if exercise.equipment != nil {
                         HStack {
                             Text("Equipment:")
                                 .fontWeight(.semibold)
@@ -84,17 +84,21 @@ struct ExerciseDetailView: View {
 #Preview {
     NavigationStack {
         ExerciseDetailView(exercise: Exercise(
-            exerciseId: "sample",
+            id: "sample",
             name: "sample exercise",
-            targetMuscles: ["chest", "triceps"],
-            bodyParts: ["upper body"],
-            equipments: ["barbell"],
+            altNames: [],
+            force: "push",
+            level: "beginner",
+            mechanic: "compound",
+            equipment: "barbell",
+            primaryMuscles: ["chest", "triceps"],
             secondaryMuscles: ["shoulders"],
             instructions: [
-                "Step:1 Set up the equipment",
-                "Step:2 Perform the movement",
-                "Step:3 Return to starting position"
-            ]
+                "Set up the equipment",
+                "Perform the movement",
+                "Return to starting position"
+            ],
+            category: "strength"
         ))
     }
 }

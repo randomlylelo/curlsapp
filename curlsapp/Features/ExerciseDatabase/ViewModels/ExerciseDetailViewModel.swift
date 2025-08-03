@@ -64,20 +64,10 @@ class ExerciseDetailViewModel {
     func getSelectedBodyParts() -> [ExtendedBodyPart] {
         var selectedParts: [ExtendedBodyPart] = []
         
-        // Process target muscles with highest intensity
-        for muscle in exercise.targetMuscles {
+        // Process primary muscles with highest intensity
+        for muscle in exercise.primaryMuscles {
             if let slug = getSlugForBodyPart(muscle) {
                 selectedParts.append(ExtendedBodyPart(slug: slug, intensity: 2))
-            }
-        }
-        
-        // Process body parts with medium intensity
-        for bodyPart in exercise.bodyParts {
-            if let slug = getSlugForBodyPart(bodyPart) {
-                // Only add if not already present from target muscles
-                if !selectedParts.contains(where: { $0.slug == slug }) {
-                    selectedParts.append(ExtendedBodyPart(slug: slug, intensity: 1))
-                }
             }
         }
         
@@ -118,11 +108,11 @@ class ExerciseDetailViewModel {
     }
     
     var formattedTargetMuscles: String {
-        exercise.targetMuscles.joined(separator: ", ").capitalized
+        exercise.primaryMuscles.joined(separator: ", ").capitalized
     }
     
     var formattedEquipments: String {
-        exercise.equipments.joined(separator: ", ").capitalized
+        exercise.equipment?.capitalized ?? "None"
     }
     
     var exerciseName: String {
@@ -131,7 +121,6 @@ class ExerciseDetailViewModel {
     
     func formattedInstruction(at index: Int) -> String {
         guard index < exercise.instructions.count else { return "" }
-        let instruction = exercise.instructions[index]
-        return instruction.replacingOccurrences(of: "Step:\(index + 1) ", with: "")
+        return exercise.instructions[index]
     }
 }

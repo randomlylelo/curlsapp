@@ -8,13 +8,15 @@
 import Foundation
 
 struct Exercise: Codable, Identifiable, Hashable {
-    let exerciseId: String
+    let id: String
     let name: String
-    let targetMuscles: [String]
-    let bodyParts: [String]
-    let equipments: [String]
+    let altNames: [String]
+    let force: String?
+    let level: String
+    let mechanic: String?
+    let equipment: String?
+    let primaryMuscles: [String]
     let secondaryMuscles: [String]
     let instructions: [String]
-    
-    var id: String { exerciseId }
+    let category: String
 }

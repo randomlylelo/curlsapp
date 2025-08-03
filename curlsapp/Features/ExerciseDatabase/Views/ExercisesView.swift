@@ -18,7 +18,7 @@ struct ExercisesView: View {
                         Text(exercise.name.capitalized)
                             .font(.headline)
                         
-                        Text(exercise.targetMuscles.joined(separator: ", ").capitalized)
+                        Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }

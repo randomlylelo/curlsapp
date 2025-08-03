@@ -18,7 +18,7 @@ struct ExerciseSelectionView: View {
         NavigationStack(path: $navigationPath) {
             VStack {
                 List(viewModel.filteredExercises) { exercise in
-                    let isSelected = selectedExercises.contains(where: { $0.exerciseId == exercise.exerciseId })
+                    let isSelected = selectedExercises.contains(where: { $0.id == exercise.id })
                     
                     HStack {
                         VStack(alignment: .leading, spacing: 8) {
@@ -26,7 +26,7 @@ struct ExerciseSelectionView: View {
                                 .font(.headline)
                                 .foregroundColor(.primary)
                             
-                            Text(exercise.targetMuscles.joined(separator: ", ").capitalized)
+                            Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
@@ -47,7 +47,7 @@ struct ExerciseSelectionView: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         if isSelected {
-                            selectedExercises.removeAll { $0.exerciseId == exercise.exerciseId }
+                            selectedExercises.removeAll { $0.id == exercise.id }
                         } else {
                             selectedExercises.append(exercise)
                         }
