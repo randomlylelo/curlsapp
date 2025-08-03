@@ -8,55 +8,25 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var workoutManager = WorkoutManager.shared
-    
     var body: some View {
         TabView {
-            WorkoutAwareView {
-                HistoryView()
-            }
-            .tabItem {
-                Label("History", systemImage: "clock")
-            }
+            HistoryView()
+                .workoutTimerBar()
+                .tabItem {
+                    Label("History", systemImage: "clock")
+                }
             
-            WorkoutAwareView {
-                WorkoutView()
-            }
-            .tabItem {
-                Label("Workout", systemImage: "dumbbell.fill")
-            }
+            WorkoutView()
+                .workoutTimerBar()
+                .tabItem {
+                    Label("Workout", systemImage: "dumbbell.fill")
+                }
             
-            WorkoutAwareView {
-                ExercisesView()
-            }
-            .tabItem {
-                Label("Exercises", systemImage: "list.bullet")
-            }
-        }
-    }
-}
-
-struct WorkoutAwareView<Content: View>: View {
-    @StateObject private var workoutManager = WorkoutManager.shared
-    let content: Content
-    
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            content
-            
-            if workoutManager.isWorkoutActive && workoutManager.isMinimized {
-                WorkoutTimerBar(
-                    elapsedTime: workoutManager.elapsedTime,
-                    workoutTitle: workoutManager.workoutTitle,
-                    onTap: {
-                        workoutManager.isMinimized = false
-                    }
-                )
-            }
+            ExercisesView()
+                .workoutTimerBar()
+                .tabItem {
+                    Label("Exercises", systemImage: "list.bullet")
+                }
         }
     }
 }
@@ -108,6 +78,32 @@ func formatTime(_ timeInterval: TimeInterval) -> String {
         return String(format: "%d:%02d:%02d", hours, minutes, seconds)
     } else {
         return String(format: "%d:%02d", minutes, seconds)
+    }
+}
+
+extension View {
+    func workoutTimerBar() -> some View {
+        modifier(WorkoutTimerBarModifier())
+    }
+}
+
+struct WorkoutTimerBarModifier: ViewModifier {
+    @StateObject private var workoutManager = WorkoutManager.shared
+    
+    func body(content: Content) -> some View {
+        VStack(spacing: 0) {
+            content
+            
+            if workoutManager.isWorkoutActive && workoutManager.isMinimized {
+                WorkoutTimerBar(
+                    elapsedTime: workoutManager.elapsedTime,
+                    workoutTitle: workoutManager.workoutTitle,
+                    onTap: {
+                        workoutManager.isMinimized = false
+                    }
+                )
+            }
+        }
     }
 }
 
