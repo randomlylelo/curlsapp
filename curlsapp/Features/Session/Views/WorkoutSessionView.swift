@@ -16,6 +16,18 @@ struct WorkoutSessionView: View {
     @State private var startTime = Date()
     @State private var isEditingTitle = false
     
+    private func getDefaultWorkoutTitle() -> String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12:
+            return "Morning Workout"
+        case 12..<17:
+            return "Afternoon Workout"
+        default:
+            return "Evening Workout"
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
@@ -24,18 +36,24 @@ struct WorkoutSessionView: View {
                     // Editable title with edit button
                     HStack {
                         if isEditingTitle {
-                            TextField("Workout Title", text: $workoutManager.workoutTitle)
+                            TextField(getDefaultWorkoutTitle(), text: $workoutManager.workoutTitle)
                                 .font(.title.weight(.semibold))
                                 .textFieldStyle(PlainTextFieldStyle())
                                 .onSubmit {
                                     isEditingTitle = false
                                 }
+                            
+                            Button("Done") {
+                                isEditingTitle = false
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(.blue)
                         } else {
                             Button(action: {
                                 isEditingTitle = true
                             }) {
                                 HStack {
-                                    Text(workoutManager.workoutTitle.isEmpty ? "Untitled Workout" : workoutManager.workoutTitle)
+                                    Text(workoutManager.workoutTitle.isEmpty ? getDefaultWorkoutTitle() : workoutManager.workoutTitle)
                                         .font(.title.weight(.semibold))
                                         .foregroundColor(.primary)
                                     
@@ -123,7 +141,7 @@ struct WorkoutSessionView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Discard") {
+                    Button("Discard Workout") {
                         workoutManager.endWorkout()
                         isPresented = false
                         dismiss()
