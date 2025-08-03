@@ -29,6 +29,14 @@ class ExerciseService {
         exercises.filter { $0.primaryMuscles.contains(muscle.lowercased()) }
     }
     
+    func exercisesByMuscleGroup(_ exercises: [Exercise], muscleGroup: MuscleGroup) -> [Exercise] {
+        exercises.filter { exercise in
+            exercise.primaryMuscles.contains { muscle in
+                muscleGroup.muscles.contains(muscle.lowercased())
+            }
+        }
+    }
+    
     func searchExercises(_ exercises: [Exercise], query: String) -> [Exercise] {
         guard !query.isEmpty else { return exercises }
         

@@ -19,6 +19,12 @@ class ExercisesViewModel {
         }
     }
     
+    var selectedMuscleGroup: MuscleGroup? = nil {
+        didSet {
+            updateFilteredExercises()
+        }
+    }
+    
     private let exerciseService = ExerciseService()
     
     init() {
@@ -36,11 +42,19 @@ class ExercisesViewModel {
     }
     
     private func updateFilteredExercises() {
-        if searchText.isEmpty {
-            filteredExercises = exercises
-        } else {
-            filteredExercises = exerciseService.searchExercises(exercises, query: searchText)
+        var result = exercises
+        
+        // Apply muscle group filter first
+        if let selectedMuscleGroup = selectedMuscleGroup {
+            result = exerciseService.exercisesByMuscleGroup(result, muscleGroup: selectedMuscleGroup)
         }
+        
+        // Then apply search filter
+        if !searchText.isEmpty {
+            result = exerciseService.searchExercises(result, query: searchText)
+        }
+        
+        filteredExercises = result
     }
     
     func exercisesByMuscleGroup(_ muscle: String) -> [Exercise] {
