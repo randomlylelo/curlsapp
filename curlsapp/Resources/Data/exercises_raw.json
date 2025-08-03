@@ -4,7 +4,7 @@
       "name": "band shrug",
       "gifUrl": "https://v1.cdn.exercisedb.dev/media/trmte8s.gif",
       "targetMuscles": ["traps"],
-      "bodyParts": ["neck",
+      "bodyParts": ["neck"],
       "equipments": ["band"],
       "secondaryMuscles": ["shoulders"],
       "instructions": [
