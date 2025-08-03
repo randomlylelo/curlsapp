@@ -7,6 +7,159 @@
 
 import SwiftUI
 
+struct ExerciseCardView: View {
+    @ObservedObject var workoutManager = WorkoutManager.shared
+    let workoutExercise: WorkoutExercise
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // Exercise title
+            Text(workoutExercise.exercise.name)
+                .font(.title3.weight(.semibold))
+                .foregroundColor(.primary)
+            
+            // Sets grid
+            VStack(spacing: 4) {
+                // Header row
+                GeometryReader { geometry in
+                    HStack(spacing: 0) {
+                        Text("Set")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .frame(width: geometry.size.width * 0.1, alignment: .center)
+                        
+                        Text("Previous")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .frame(width: geometry.size.width * 0.4, alignment: .center)
+                        
+                        Text("Lbs")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .frame(width: geometry.size.width * 0.2, alignment: .center)
+                            .padding(.trailing, 4)
+                        
+                        Text("Reps")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .frame(width: geometry.size.width * 0.2, alignment: .center)
+                            .padding(.leading, 4)
+                        
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .frame(width: geometry.size.width * 0.1, alignment: .center)
+                    }
+                }
+                .frame(height: 20)
+                .padding(.bottom, 0)
+                
+                // Sets rows
+                ForEach(Array(workoutExercise.sets.enumerated()), id: \.element.id) { index, set in
+                    GeometryReader { geometry in
+                        SetRowView(
+                            setNumber: index + 1,
+                            set: set,
+                            exerciseId: workoutExercise.id,
+                            columnWidth: geometry.size.width
+                        )
+                    }
+                    .frame(height: 40)
+                }
+            }
+            
+            // Add set button
+            Button(action: {
+                workoutManager.addSet(to: workoutExercise.id)
+            }) {
+                HStack {
+                    Image(systemName: "plus.circle")
+                        .font(.system(size: 16))
+                    Text("Add Set")
+                        .font(.system(size: 16, weight: .medium))
+                }
+                .foregroundColor(.blue)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(Color.blue.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+            .padding(.top, 8)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+    }
+}
+
+struct SetRowView: View {
+    @ObservedObject var workoutManager = WorkoutManager.shared
+    let setNumber: Int
+    let set: WorkoutSet
+    let exerciseId: UUID
+    let columnWidth: CGFloat
+    
+    @State private var weightText: String = ""
+    @State private var repsText: String = ""
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            // Set number
+            Text("\(setNumber)")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.secondary)
+                .frame(width: columnWidth * 0.1, alignment: .center)
+            
+            // Previous weight
+            Text(set.previousWeight > 0 ? "\(Int(set.previousWeight))" : "-")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.secondary)
+                .frame(width: columnWidth * 0.4, alignment: .center)
+            
+            // Weight input
+            TextField("0", text: $weightText)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .keyboardType(.numberPad)
+                .frame(width: columnWidth * 0.2, height: 36)
+                .multilineTextAlignment(.center)
+                .font(.system(size: 16, weight: .medium))
+                .onChange(of: weightText) { _, newValue in
+                    if let weight = Double(newValue) {
+                        workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, weight: weight)
+                    }
+                }
+                .padding(.trailing, 4)
+            
+            // Reps input
+            TextField("0", text: $repsText)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .keyboardType(.numberPad)
+                .frame(width: columnWidth * 0.2, height: 36)
+                .multilineTextAlignment(.center)
+                .font(.system(size: 16, weight: .medium))
+                .onChange(of: repsText) { _, newValue in
+                    if let reps = Int(newValue) {
+                        workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, reps: reps)
+                    }
+                }
+                .padding(.leading, 4)
+            
+            // Checkmark
+            Image(systemName: set.isCompleted ? "checkmark.square.fill" : "square")
+                .font(.system(size: 20, weight: .medium))
+                .foregroundColor(set.isCompleted ? .green : .gray)
+                .frame(width: columnWidth * 0.1, alignment: .center)
+                .onTapGesture {
+                    workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
+                }
+        }
+        .padding(.vertical, 1)
+        .onAppear {
+            weightText = set.weight > 0 ? "\(Int(set.weight))" : ""
+            repsText = set.reps > 0 ? "\(set.reps)" : ""
+        }
+    }
+}
+
 struct WorkoutSessionView: View {
     @Binding var isPresented: Bool
     @Environment(\.dismiss) private var dismiss
@@ -86,27 +239,60 @@ struct WorkoutSessionView: View {
                 .padding()
                 
                 // Content area
-                VStack(spacing: 20) {
-                    // Add Exercise button
-                    Button(action: {
-                        showingExerciseSelection = true
-                    }) {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.title2)
-                            Text("Add Exercise")
-                                .font(.headline)
+                VStack(spacing: 0) {
+                    if workoutManager.exercises.isEmpty {
+                        // Add Exercise button when no exercises
+                        VStack(spacing: 20) {
+                            Button(action: {
+                                showingExerciseSelection = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.title2)
+                                    Text("Add Exercise")
+                                        .font(.headline)
+                                }
+                                .foregroundColor(.blue)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue.opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                            .padding(.horizontal)
+                            .padding(.top)
+                            
+                            Spacer()
                         }
-                        .foregroundColor(.blue)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    } else {
+                        // Exercise list
+                        ScrollView {
+                            LazyVStack(spacing: 16) {
+                                ForEach(workoutManager.exercises) { workoutExercise in
+                                    ExerciseCardView(workoutExercise: workoutExercise)
+                                }
+                                
+                                // Add Exercise button at bottom
+                                Button(action: {
+                                    showingExerciseSelection = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(.title2)
+                                        Text("Add Exercise")
+                                            .font(.headline)
+                                    }
+                                    .foregroundColor(.blue)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.blue.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                                .padding(.horizontal)
+                                .padding(.top, 8)
+                            }
+                            .padding(.top)
+                        }
                     }
-                    .padding(.horizontal)
-                    .padding(.top)
-                    
-                    Spacer()
                     
                     // Finish button
                     Button(action: {
@@ -177,9 +363,7 @@ struct WorkoutSessionView: View {
         }
         .sheet(isPresented: $showingExerciseSelection) {
             ExerciseSelectionView { exercise in
-                // Handle selected exercise
-                print("Selected exercise: \(exercise.name)")
-                // TODO: Add exercise to workout
+                workoutManager.addExercise(exercise)
             }
         }
     }
