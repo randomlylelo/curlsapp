@@ -86,7 +86,6 @@ struct ExerciseDetailView: View {
         ExerciseDetailView(exercise: Exercise(
             exerciseId: "sample",
             name: "sample exercise",
-            gifUrl: "",
             targetMuscles: ["chest", "triceps"],
             bodyParts: ["upper body"],
             equipments: ["barbell"],
