@@ -15,6 +15,7 @@ struct WorkoutSessionView: View {
     @State private var timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @State private var startTime = Date()
     @State private var isEditingTitle = false
+    @State private var showingExerciseSelection = false
     
     private func getDefaultWorkoutTitle() -> String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -88,7 +89,7 @@ struct WorkoutSessionView: View {
                 VStack(spacing: 20) {
                     // Add Exercise button
                     Button(action: {
-                        // Add exercise action
+                        showingExerciseSelection = true
                     }) {
                         HStack {
                             Image(systemName: "plus.circle.fill")
@@ -173,6 +174,13 @@ struct WorkoutSessionView: View {
                         }
                     }
             )
+        }
+        .sheet(isPresented: $showingExerciseSelection) {
+            ExerciseSelectionView { exercise in
+                // Handle selected exercise
+                print("Selected exercise: \(exercise.name)")
+                // TODO: Add exercise to workout
+            }
         }
     }
 }

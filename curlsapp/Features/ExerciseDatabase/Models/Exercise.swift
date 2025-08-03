@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Exercise: Codable, Identifiable {
+struct Exercise: Codable, Identifiable, Hashable {
     let exerciseId: String
     let name: String
     let gifUrl: String
