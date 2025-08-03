@@ -11,7 +11,10 @@ class WorkoutManager: ObservableObject {
     static let shared = WorkoutManager()
     
     @Published var isWorkoutActive: Bool = false
+    @Published var isMinimized: Bool = false
     @Published var elapsedTime: TimeInterval = 0
+    @Published var workoutTitle: String = ""
+    @Published var workoutNotes: String = ""
     
     private var startTime: Date?
     private var timer: Timer?
@@ -32,10 +35,13 @@ class WorkoutManager: ObservableObject {
     
     func endWorkout() {
         isWorkoutActive = false
+        isMinimized = false
         timer?.invalidate()
         timer = nil
         startTime = nil
         elapsedTime = 0
+        workoutTitle = ""
+        workoutNotes = ""
     }
     
     private func updateElapsedTime() {

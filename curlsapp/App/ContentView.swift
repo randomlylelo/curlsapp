@@ -11,26 +11,51 @@ struct ContentView: View {
     @StateObject private var workoutManager = WorkoutManager.shared
     
     var body: some View {
-        VStack(spacing: 0) {
-            TabView {
+        TabView {
+            WorkoutAwareView {
                 HistoryView()
-                    .tabItem {
-                        Label("History", systemImage: "clock")
-                    }
-                
-                WorkoutView()
-                    .tabItem {
-                        Label("Workout", systemImage: "dumbbell.fill")
-                    }
-                
-                ExercisesView()
-                    .tabItem {
-                        Label("Exercises", systemImage: "list.bullet")
-                    }
+            }
+            .tabItem {
+                Label("History", systemImage: "clock")
             }
             
-            if workoutManager.isWorkoutActive {
-                WorkoutTimerBar(elapsedTime: workoutManager.elapsedTime)
+            WorkoutAwareView {
+                WorkoutView()
+            }
+            .tabItem {
+                Label("Workout", systemImage: "dumbbell.fill")
+            }
+            
+            WorkoutAwareView {
+                ExercisesView()
+            }
+            .tabItem {
+                Label("Exercises", systemImage: "list.bullet")
+            }
+        }
+    }
+}
+
+struct WorkoutAwareView<Content: View>: View {
+    @StateObject private var workoutManager = WorkoutManager.shared
+    let content: Content
+    
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            content
+            
+            if workoutManager.isWorkoutActive && workoutManager.isMinimized {
+                WorkoutTimerBar(
+                    elapsedTime: workoutManager.elapsedTime,
+                    workoutTitle: workoutManager.workoutTitle,
+                    onTap: {
+                        workoutManager.isMinimized = false
+                    }
+                )
             }
         }
     }
@@ -38,27 +63,39 @@ struct ContentView: View {
 
 struct WorkoutTimerBar: View {
     let elapsedTime: TimeInterval
+    let workoutTitle: String
+    let onTap: () -> Void
     
     var body: some View {
-        HStack {
-            Image(systemName: "timer")
-                .foregroundColor(.blue)
-            
-            Text("Workout: \(formatTime(elapsedTime))")
-                .font(.system(.body, design: .monospaced))
-                .fontWeight(.medium)
-            
-            Spacer()
-            
-            Text("Active")
-                .font(.caption)
-                .foregroundColor(.green)
-                .fontWeight(.semibold)
+        Button(action: onTap) {
+            HStack {
+                Image(systemName: "timer")
+                    .foregroundColor(.blue)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(workoutTitle.isEmpty ? "Current Workout" : workoutTitle)
+                        .font(.footnote)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    
+                    Text(formatTime(elapsedTime))
+                        .font(.system(.body, design: .monospaced))
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.up")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(Color(.systemGray6))
+            .border(Color(.systemGray4), width: 0.5)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-        .background(Color(.systemGray6))
-        .border(Color(.systemGray4), width: 0.5)
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct WorkoutView: View {
     @State private var showingWorkoutSession = false
+    @StateObject private var workoutManager = WorkoutManager.shared
     
     var body: some View {
         NavigationStack {
@@ -42,7 +43,16 @@ struct WorkoutView: View {
             .padding(.top)
             .navigationTitle("Workout")
             .fullScreenCover(isPresented: $showingWorkoutSession) {
-                WorkoutSessionView()
+                WorkoutSessionView(isPresented: $showingWorkoutSession)
+            }
+            .onAppear {
+                // If workout is active but minimized, allow tapping the minimized view to show full screen
+                showingWorkoutSession = workoutManager.isWorkoutActive && !workoutManager.isMinimized
+            }
+            .onChange(of: workoutManager.isMinimized) { _, isMinimized in
+                if !isMinimized && workoutManager.isWorkoutActive {
+                    showingWorkoutSession = true
+                }
             }
         }
     }
@@ -81,9 +91,9 @@ struct WorkoutCard: View {
 }
 
 struct WorkoutSessionView: View {
+    @Binding var isPresented: Bool
     @Environment(\.dismiss) private var dismiss
-    @State private var workoutTitle = ""
-    @State private var workoutNotes = ""
+    @StateObject private var workoutManager = WorkoutManager.shared
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @State private var startTime = Date()
@@ -99,12 +109,12 @@ struct WorkoutSessionView: View {
                         .foregroundColor(.primary)
                     
                     // Title field
-                    TextField("Workout Title", text: $workoutTitle)
+                    TextField("Workout Title", text: $workoutManager.workoutTitle)
                         .font(.title2)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     
                     // Notes field
-                    TextField("Add notes...", text: $workoutNotes, axis: .vertical)
+                    TextField("Add notes...", text: $workoutManager.workoutNotes, axis: .vertical)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .lineLimit(3...6)
                 }
@@ -136,6 +146,8 @@ struct WorkoutSessionView: View {
                     
                     // Finish button
                     Button(action: {
+                        workoutManager.endWorkout()
+                        isPresented = false
                         dismiss()
                     }) {
                         Text("Finish Workout")
@@ -153,24 +165,44 @@ struct WorkoutSessionView: View {
             .navigationTitle("Current Workout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        workoutManager.isMinimized = true
+                        isPresented = false
+                        dismiss()
+                    }) {
+                        HStack {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Discard") {
+                        workoutManager.endWorkout()
+                        isPresented = false
                         dismiss()
                     }
                     .foregroundColor(.red)
                 }
             }
             .onAppear {
-                startTime = Date()
-                elapsedTime = 0
+                if !workoutManager.isWorkoutActive {
+                    workoutManager.startWorkout()
+                }
+                workoutManager.isMinimized = false
+                startTime = Date() - workoutManager.elapsedTime
             }
             .onReceive(timer) { _ in
-                elapsedTime = Date().timeIntervalSince(startTime)
+                elapsedTime = workoutManager.elapsedTime
             }
             .gesture(
                 DragGesture()
                     .onEnded { gesture in
                         if gesture.translation.height > 100 {
+                            workoutManager.isMinimized = true
+                            isPresented = false
                             dismiss()
                         }
                     }
@@ -181,8 +213,4 @@ struct WorkoutSessionView: View {
 
 #Preview {
     WorkoutView()
-}
-
-#Preview {
-    WorkoutSessionView()
 }
