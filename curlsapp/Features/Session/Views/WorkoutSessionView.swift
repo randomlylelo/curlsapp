@@ -14,29 +14,57 @@ struct WorkoutSessionView: View {
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @State private var startTime = Date()
+    @State private var isEditingTitle = false
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Header with duration, title, and notes
-                VStack(spacing: 16) {
-                    // Duration timer
-                    Text(formatTime(elapsedTime))
-                        .font(.system(size: 32, weight: .bold, design: .monospaced))
-                        .foregroundColor(.primary)
+            VStack(alignment: .leading, spacing: 0) {
+                // Header with title, timer, and notes
+                VStack(alignment: .leading, spacing: 16) {
+                    // Editable title with edit button
+                    HStack {
+                        if isEditingTitle {
+                            TextField("Workout Title", text: $workoutManager.workoutTitle)
+                                .font(.title.weight(.semibold))
+                                .textFieldStyle(PlainTextFieldStyle())
+                                .onSubmit {
+                                    isEditingTitle = false
+                                }
+                        } else {
+                            Button(action: {
+                                isEditingTitle = true
+                            }) {
+                                HStack {
+                                    Text(workoutManager.workoutTitle.isEmpty ? "Untitled Workout" : workoutManager.workoutTitle)
+                                        .font(.title.weight(.semibold))
+                                        .foregroundColor(.primary)
+                                    
+                                    Image(systemName: "pencil")
+                                        .font(.title)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        
+                        Spacer()
+                    }
                     
-                    // Title field
-                    TextField("Workout Title", text: $workoutManager.workoutTitle)
-                        .font(.title2)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    // Timer below title
+                    HStack(spacing: 6) {
+                        Image(systemName: "stopwatch")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.secondary)
+                        
+                        Text(formatTime(elapsedTime))
+                            .font(.system(size: 20, weight: .bold, design: .monospaced))
+                            .foregroundColor(.primary)
+                    }
                     
-                    // Notes field
-                    TextField("Add notes...", text: $workoutManager.workoutNotes, axis: .vertical)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .lineLimit(3...6)
+                    // Single line notes
+                    TextField("Add notes...", text: $workoutManager.workoutNotes)
+                        .textFieldStyle(PlainTextFieldStyle())
                 }
                 .padding()
-                .background(Color(.systemGray6))
                 
                 // Content area
                 VStack(spacing: 20) {
@@ -53,7 +81,7 @@ struct WorkoutSessionView: View {
                         .foregroundColor(.blue)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color(.systemGray6))
+                        .background(Color.blue.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                     .padding(.horizontal)
@@ -79,7 +107,6 @@ struct WorkoutSessionView: View {
                     .padding(.bottom)
                 }
             }
-            .navigationTitle("Current Workout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -118,6 +145,10 @@ struct WorkoutSessionView: View {
                 DragGesture()
                     .onEnded { gesture in
                         if gesture.translation.height > 100 {
+                            workoutManager.isMinimized = true
+                            isPresented = false
+                            dismiss()
+                        } else if gesture.translation.width > 100 && abs(gesture.translation.height) < 50 {
                             workoutManager.isMinimized = true
                             isPresented = false
                             dismiss()
