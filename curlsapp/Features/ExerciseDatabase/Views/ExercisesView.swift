@@ -12,59 +12,99 @@ struct ExercisesView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Muscle group filter buttons - balanced 3-column grid
-                VStack(spacing: 8) {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
-                        // All button
-                        Button("All") {
-                            viewModel.selectedMuscleGroup = nil
-                        }
-                        .buttonStyle(FilterButtonStyle(isSelected: viewModel.selectedMuscleGroup == nil))
-                        
-                        // Muscle group buttons
-                        ForEach(MuscleGroup.allCases, id: \.self) { group in
-                            Button(group.rawValue) {
-                                viewModel.selectedMuscleGroup = group
-                            }
-                            .buttonStyle(FilterButtonStyle(isSelected: viewModel.selectedMuscleGroup == group))
-                        }
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 12)
-                
-                // Exercise list
-                List(viewModel.filteredExercises) { exercise in
-                    NavigationLink(destination: ExerciseDetailView(exercise: exercise)) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(exercise.name.capitalized)
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
+            ScrollViewReader { scrollProxy in
+                ZStack {
+                    VStack(spacing: 0) {
+                        // Muscle group filter buttons - balanced 3-column grid
+                        VStack(spacing: 8) {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
+                                // All button
+                                Button("All") {
+                                    viewModel.selectedMuscleGroup = nil
+                                }
+                                .buttonStyle(FilterButtonStyle(isSelected: viewModel.selectedMuscleGroup == nil))
                                 
-                                Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                // Muscle group buttons
+                                ForEach(MuscleGroup.allCases, id: \.self) { group in
+                                    Button(group.rawValue) {
+                                        viewModel.selectedMuscleGroup = group
+                                    }
+                                    .buttonStyle(FilterButtonStyle(isSelected: viewModel.selectedMuscleGroup == group))
+                                }
                             }
-                            Spacer()
                         }
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 16)
-                        .background(Color.clear)
-                        .overlay(
-                            Rectangle()
-                                .frame(height: 0.5)
-                                .foregroundColor(Color(.separator))
-                                .opacity(0.6),
-                            alignment: .bottom
+                        .padding(.horizontal)
+                        .padding(.top, 0)
+                        .padding(.bottom, 10)
+                        
+                        
+                        // Sectioned exercise list
+                        List {
+                            ForEach(viewModel.alphabetSections, id: \.self) { section in
+                                Section {
+                                    ForEach(viewModel.sectionedExercises[section] ?? []) { exercise in
+                                        NavigationLink(destination: ExerciseDetailView(exercise: exercise)) {
+                                            HStack {
+                                                VStack(alignment: .leading, spacing: 8) {
+                                                    Text(exercise.name.capitalized)
+                                                        .font(.headline)
+                                                        .foregroundColor(.primary)
+                                                    
+                                                    Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
+                                                        .font(.subheadline)
+                                                        .foregroundColor(.secondary)
+                                                }
+                                                Spacer()
+                                            }
+                                            .padding(.vertical, 16)
+                                            .padding(.horizontal, 16)
+                                            .background(Color.clear)
+                                            .overlay(
+                                                Rectangle()
+                                                    .frame(height: 0.5)
+                                                    .foregroundColor(Color(.separator))
+                                                    .opacity(0.6),
+                                                alignment: .bottom
+                                            )
+                                        }
+                                        .listRowBackground(Color.clear)
+                                        .listRowSeparator(.hidden)
+                                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
+                                    }
+                                } header: {
+                                    Text(section)
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.secondary)
+                                        .padding(.horizontal, 16)
+                                        .padding(.top, 8)
+                                        .padding(.bottom, 4)
+                                        .id(section)
+                                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
+                                }
+                                .headerProminence(.standard)
+                            }
+                        }
+                        .listStyle(.plain)
+                        .listSectionSeparator(.hidden)
+                    }.padding(.top, 4)
+                    
+                    // Alphabet index on the right
+                    HStack {
+                        Spacer()
+                        AlphabetIndexView(
+                            alphabet: viewModel.fullAlphabet,
+                            availableSections: viewModel.alphabetSections,
+                            onLetterTapped: { letter in
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    scrollProxy.scrollTo(letter, anchor: .top)
+                                }
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
                         )
+                        .padding(.trailing, 4)
                     }
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 16))
                 }
-                .listStyle(.plain)
             }
             .navigationTitle("Exercises")
             .searchable(text: $viewModel.searchText, prompt: "Search exercises...")
