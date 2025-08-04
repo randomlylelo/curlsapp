@@ -106,6 +106,15 @@ class WorkoutManager: ObservableObject {
         }
     }
     
+    func moveExercise(from sourceIndex: Int, to destinationIndex: Int) {
+        guard sourceIndex != destinationIndex,
+              exercises.indices.contains(sourceIndex),
+              exercises.indices.contains(destinationIndex) else { return }
+        
+        let exercise = exercises.remove(at: sourceIndex)
+        exercises.insert(exercise, at: destinationIndex)
+    }
+    
     private func updateElapsedTime() {
         guard let startTime = startTime else { return }
         elapsedTime = Date().timeIntervalSince(startTime)

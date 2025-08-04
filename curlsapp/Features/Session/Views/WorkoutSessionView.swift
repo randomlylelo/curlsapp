@@ -19,6 +19,12 @@ struct WorkoutSessionView: View {
     @State private var showingExerciseSelection = false
     @State private var showingCancelConfirmation = false
     
+    // Drag and drop state
+    @State private var isReorderingMode = false
+    @State private var draggedExerciseIndex: Int? = nil
+    @State private var dropTargetIndex: Int? = nil
+    @State private var dragOffset: CGSize = .zero
+    
     private func getDefaultWorkoutTitle() -> String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
@@ -31,10 +37,53 @@ struct WorkoutSessionView: View {
         }
     }
     
+    private func calculateDropTarget(dragY: CGFloat) -> Int? {
+        guard !workoutManager.exercises.isEmpty else { return nil }
+        
+        let cardHeight: CGFloat = 60 // Approximate height of compact exercise card
+        let cardIndex = Int((dragY + cardHeight/2) / cardHeight)
+        
+        // Ensure index is within bounds
+        let clampedIndex = max(0, min(workoutManager.exercises.count - 1, cardIndex))
+        
+        // Don't allow dropping on the same position
+        if let draggedIndex = draggedExerciseIndex, clampedIndex == draggedIndex {
+            return nil
+        }
+        
+        return clampedIndex
+    }
+    
+    private func handleDragChanged(draggedIndex: Int, translation: CGSize) {
+        dragOffset = translation
+        
+        // Calculate drop target based on drag position
+        if draggedExerciseIndex != nil {
+            dropTargetIndex = calculateDropTarget(dragY: translation.height)
+        }
+    }
+    
+    private func handleDragEnded(draggedIndex: Int) {
+        // Perform the reorder if we have a valid drop target
+        if let draggedIndex = draggedExerciseIndex,
+           let dropIndex = dropTargetIndex,
+           dropIndex != draggedIndex {
+            workoutManager.moveExercise(from: draggedIndex, to: dropIndex)
+        }
+        
+        // Reset all drag state
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            isReorderingMode = false
+            draggedExerciseIndex = nil
+            dropTargetIndex = nil
+            dragOffset = .zero
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 0) {
+                VStack(spacing: 0) {
                     // Header with title, timer, and notes
                     VStack(alignment: .leading, spacing: 16) {
                         // Editable title with edit button
@@ -90,9 +139,31 @@ struct WorkoutSessionView: View {
                     
                     // Exercise list
                     if !workoutManager.exercises.isEmpty {
-                        LazyVStack(spacing: 8) {
-                            ForEach(workoutManager.exercises) { workoutExercise in
-                                ExerciseCardView(workoutExercise: workoutExercise)
+                        VStack(spacing: isReorderingMode ? 4 : 8) {
+                            ForEach(workoutManager.exercises.indices, id: \.self) { index in
+                                let workoutExercise = workoutManager.exercises[index]
+                                
+                                if isReorderingMode {
+                                    CompactExerciseTitleView(
+                                        exercise: workoutExercise.exercise,
+                                        index: index,
+                                        isDragged: draggedExerciseIndex == index,
+                                        dropTargetIndex: dropTargetIndex,
+                                        dragOffset: $dragOffset,
+                                        onDragChanged: handleDragChanged,
+                                        onDragEnded: handleDragEnded
+                                    )
+                                } else {
+                                    ExerciseCardView(
+                                        workoutExercise: workoutExercise,
+                                        onLongPress: {
+                                            draggedExerciseIndex = index
+                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                                isReorderingMode = true
+                                            }
+                                        }
+                                    )
+                                }
                             }
                         }
                         .padding(.top, 8)
@@ -168,20 +239,6 @@ struct WorkoutSessionView: View {
             .onReceive(timer) { _ in
                 elapsedTime = workoutManager.elapsedTime
             }
-            .gesture(
-                DragGesture()
-                    .onEnded { gesture in
-                        if gesture.translation.height > 100 {
-                            workoutManager.isMinimized = true
-                            isPresented = false
-                            dismiss()
-                        } else if gesture.translation.width > 100 && abs(gesture.translation.height) < 50 {
-                            workoutManager.isMinimized = true
-                            isPresented = false
-                            dismiss()
-                        }
-                    }
-            )
         }
         .sheet(isPresented: $showingExerciseSelection) {
             ExerciseSelectionView(excludedExerciseIds: Set(workoutManager.exercises.map { $0.exercise.id })) { exercise in

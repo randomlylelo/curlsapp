@@ -11,6 +11,7 @@ struct ExerciseCardView: View {
     @ObservedObject var workoutManager = WorkoutManager.shared
     @StateObject private var focusManager = WorkoutInputFocusManager()
     let workoutExercise: WorkoutExercise
+    let onLongPress: () -> Void
     
     private func findNextInput() {
         guard let currentInput = focusManager.activeInput else { return }
@@ -49,6 +50,9 @@ struct ExerciseCardView: View {
             Text(workoutExercise.exercise.name)
                 .font(.title3.weight(.semibold))
                 .foregroundColor(.primary)
+                .onLongPressGesture(minimumDuration: 0.5) {
+                    onLongPress()
+                }
             
             // Sets grid
             VStack(spacing: 4) {
