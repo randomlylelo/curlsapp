@@ -41,17 +41,32 @@ struct WorkoutSessionView: View {
         guard !workoutManager.exercises.isEmpty else { return nil }
         
         let cardHeight: CGFloat = 60 // Approximate height of compact exercise card
-        let cardIndex = Int((dragY + cardHeight/2) / cardHeight)
+        let cardSpacing: CGFloat = 8 // Spacing between cards in normal mode
+        let totalCardHeight = cardHeight + cardSpacing
         
-        // Ensure index is within bounds
-        let clampedIndex = max(0, min(workoutManager.exercises.count - 1, cardIndex))
-        
-        // Don't allow dropping on the same position
-        if let draggedIndex = draggedExerciseIndex, clampedIndex == draggedIndex {
-            return nil
+        // Calculate which drop zone we're in
+        // Zone 0 = before first exercise
+        // Zone i = between exercise i-1 and i
+        // Zone count = after last exercise
+        let dropZone: Int
+        if dragY < -(totalCardHeight / 2) {
+            // Above first exercise
+            dropZone = 0
+        } else {
+            // Calculate based on card position
+            let zoneIndex = Int((dragY + totalCardHeight / 2) / totalCardHeight)
+            dropZone = max(0, min(workoutManager.exercises.count, zoneIndex + 1))
         }
         
-        return clampedIndex
+        // Don't allow dropping in the same position or adjacent to dragged item
+        if let draggedIndex = draggedExerciseIndex {
+            // If dropping before the dragged item or after it (no actual move)
+            if dropZone == draggedIndex || dropZone == draggedIndex + 1 {
+                return nil
+            }
+        }
+        
+        return dropZone
     }
     
     private func handleDragChanged(draggedIndex: Int, translation: CGSize) {
@@ -66,9 +81,22 @@ struct WorkoutSessionView: View {
     private func handleDragEnded(draggedIndex: Int) {
         // Perform the reorder if we have a valid drop target
         if let draggedIndex = draggedExerciseIndex,
-           let dropIndex = dropTargetIndex,
-           dropIndex != draggedIndex {
-            workoutManager.moveExercise(from: draggedIndex, to: dropIndex)
+           let dropZone = dropTargetIndex {
+            
+            // Convert drop zone to insertion index
+            let insertionIndex: Int
+            if draggedIndex < dropZone {
+                // When removing an item before the drop zone, indices shift down
+                insertionIndex = dropZone - 1
+            } else {
+                // When removing an item at or after the drop zone, no shift needed
+                insertionIndex = dropZone
+            }
+            
+            // Only move if it's actually a different position
+            if insertionIndex != draggedIndex {
+                workoutManager.moveExercise(from: draggedIndex, to: insertionIndex)
+            }
         }
         
         // Reset all drag state
@@ -188,6 +216,27 @@ struct WorkoutSessionView: View {
                             }
                         }
                         .padding(.top, 8)
+                        
+                        // Drop zone indicator below last exercise
+                        if let dropIndex = dropTargetIndex, dropIndex == workoutManager.exercises.count {
+                            HStack {
+                                Circle()
+                                    .fill(Color.blue)
+                                    .frame(width: 6, height: 6)
+                                
+                                Rectangle()
+                                    .fill(Color.blue)
+                                    .frame(height: 3)
+                                
+                                Circle()
+                                    .fill(Color.blue)
+                                    .frame(width: 6, height: 6)
+                            }
+                            .padding(.horizontal)
+                            .padding(.top, 4)
+                            .transition(.opacity.combined(with: .scale))
+                            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: dropTargetIndex)
+                        }
                     }
                     
                     // Add Exercise button

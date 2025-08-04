@@ -19,7 +19,8 @@ struct CompactExerciseTitleView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Drop zone indicator above
-            if dropTargetIndex == index {
+            // Show when dropTargetIndex matches this position OR when it's the first exercise and dropTargetIndex is 0
+            if dropTargetIndex == index || (dropTargetIndex == 0 && index == 0) {
                 HStack {
                     Circle()
                         .fill(Color.blue)
