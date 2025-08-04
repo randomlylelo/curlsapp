@@ -37,17 +37,34 @@ struct ExercisesView: View {
                 // Exercise list
                 List(viewModel.filteredExercises) { exercise in
                     NavigationLink(destination: ExerciseDetailView(exercise: exercise)) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(exercise.name.capitalized)
-                                .font(.headline)
-                            
-                            Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                        HStack {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(exercise.name.capitalized)
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                
+                                Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
                         }
-                        .padding(.vertical, 4)
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 16)
+                        .background(Color.clear)
+                        .overlay(
+                            Rectangle()
+                                .frame(height: 0.5)
+                                .foregroundColor(Color(.separator))
+                                .opacity(0.6),
+                            alignment: .bottom
+                        )
                     }
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 16))
                 }
+                .listStyle(.plain)
             }
             .navigationTitle("Exercises")
             .searchable(text: $viewModel.searchText, prompt: "Search exercises...")
