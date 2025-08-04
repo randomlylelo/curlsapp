@@ -157,40 +157,31 @@ struct WorkoutSessionView: View {
                                         ExerciseCardView(workoutExercise: workoutExercise)
                                     }
                                 }
-                                .gesture(
+                                .simultaneousGesture(
+                                    // Long press gesture - only triggers on completion, not during press
                                     LongPressGesture(minimumDuration: 0.5)
-                                        .sequenced(before: DragGesture(coordinateSpace: .global))
-                                        .onChanged { value in
-                                            switch value {
-                                            case .first(let isPressed):
-                                                if isPressed {
-                                                    // Long press completed - switch to compact mode
-                                                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                                                    impactFeedback.impactOccurred()
-                                                    
-                                                    draggedExerciseIndex = index
-                                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                                        isReorderingMode = true
-                                                    }
-                                                }
-                                            case .second(let isPressed, let drag):
-                                                if isPressed, let drag = drag {
-                                                    // Drag is happening - handle drag
-                                                    handleDragChanged(draggedIndex: index, translation: drag.translation)
-                                                }
-                                            default:
-                                                break
+                                        .onEnded { _ in
+                                            // Long press completed - switch to drag mode
+                                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                            impactFeedback.impactOccurred()
+                                            
+                                            draggedExerciseIndex = index
+                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                                isReorderingMode = true
                                             }
                                         }
-                                        .onEnded { value in
-                                            switch value {
-                                            case .second(let isPressed, _):
-                                                if isPressed {
-                                                    // Drag ended
-                                                    handleDragEnded(draggedIndex: index)
-                                                }
-                                            default:
-                                                break
+                                )
+                                .simultaneousGesture(
+                                    // Drag gesture - only active when in reorder mode
+                                    DragGesture(coordinateSpace: .global)
+                                        .onChanged { gesture in
+                                            if isReorderingMode && draggedExerciseIndex == index {
+                                                handleDragChanged(draggedIndex: index, translation: gesture.translation)
+                                            }
+                                        }
+                                        .onEnded { _ in
+                                            if isReorderingMode && draggedExerciseIndex == index {
+                                                handleDragEnded(draggedIndex: index)
                                             }
                                         }
                                 )
@@ -237,6 +228,7 @@ struct WorkoutSessionView: View {
                     .padding(.bottom)
                 }
             }
+            .scrollDisabled(isReorderingMode)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
