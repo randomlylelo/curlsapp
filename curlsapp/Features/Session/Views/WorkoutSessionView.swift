@@ -61,7 +61,8 @@ struct ExerciseCardView: View {
                             setNumber: index + 1,
                             set: set,
                             exerciseId: workoutExercise.id,
-                            columnWidth: geometry.size.width
+                            columnWidth: geometry.size.width,
+                            isLastSet: index == workoutExercise.sets.count - 1
                         )
                     }
                     .frame(height: 40)
@@ -97,62 +98,70 @@ struct SetRowView: View {
     let set: WorkoutSet
     let exerciseId: UUID
     let columnWidth: CGFloat
+    let isLastSet: Bool
     
     @State private var weightText: String = ""
     @State private var repsText: String = ""
     
     var body: some View {
-        HStack(spacing: 0) {
-            // Set number
-            Text("\(setNumber)")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.secondary)
-                .frame(width: columnWidth * 0.1, alignment: .center)
+        ZStack {
+            // Full-width background highlight for completed sets
+            Rectangle()
+                .fill(set.isCompleted ? Color.green.opacity(0.1) : Color.clear)
             
-            // Previous weight
-            Text(set.previousWeight > 0 ? "\(Int(set.previousWeight))" : "-")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.secondary)
-                .frame(width: columnWidth * 0.4, alignment: .center)
-            
-            // Weight input
-            TextField("0", text: $weightText)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .keyboardType(.numberPad)
-                .frame(width: columnWidth * 0.2, height: 36)
-                .multilineTextAlignment(.center)
-                .font(.system(size: 16, weight: .medium))
-                .onChange(of: weightText) { _, newValue in
-                    if let weight = Double(newValue) {
-                        workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, weight: weight)
+            // Main content with exact proportions matching header: 0.1, 0.4, 0.2, 0.2, 0.1
+            HStack(spacing: 0) {
+                // Set number - 0.1 width
+                Text("\(setNumber)")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .frame(width: columnWidth * 0.1, alignment: .center)
+                
+                // Previous weight - 0.4 width
+                Text(set.previousWeight > 0 ? "\(Int(set.previousWeight))" : "-")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .frame(width: columnWidth * 0.4, alignment: .center)
+                
+                // Weight input - 0.2 width
+                TextField("0", text: $weightText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .keyboardType(.numberPad)
+                    .frame(width: columnWidth * 0.2, height: 36)
+                    .multilineTextAlignment(.center)
+                    .font(.system(size: 16, weight: .medium))
+                    .onChange(of: weightText) { _, newValue in
+                        if let weight = Double(newValue) {
+                            workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, weight: weight)
+                        }
+                    }.padding(.trailing, 4)
+                
+                // Reps input - 0.2 width  
+                TextField("0", text: $repsText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .keyboardType(.numberPad)
+                    .frame(width: columnWidth * 0.2, height: 36)
+                    .multilineTextAlignment(.center)
+                    .font(.system(size: 16, weight: .medium))
+                    .onChange(of: repsText) { _, newValue in
+                        if let reps = Int(newValue) {
+                            workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, reps: reps)
+                        }
+                    }.padding(.leading, 4)
+                
+                // Checkmark - 0.1 width
+                Image(systemName: set.isCompleted ? "checkmark.square.fill" : "square")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(set.isCompleted ? .green : .gray)
+                    .frame(width: columnWidth * 0.1, alignment: .center)
+                    .onTapGesture {
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                        impactFeedback.impactOccurred()
+                        workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
                     }
-                }
-                .padding(.trailing, 4)
+            }
             
-            // Reps input
-            TextField("0", text: $repsText)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .keyboardType(.numberPad)
-                .frame(width: columnWidth * 0.2, height: 36)
-                .multilineTextAlignment(.center)
-                .font(.system(size: 16, weight: .medium))
-                .onChange(of: repsText) { _, newValue in
-                    if let reps = Int(newValue) {
-                        workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, reps: reps)
-                    }
-                }
-                .padding(.leading, 4)
-            
-            // Checkmark
-            Image(systemName: set.isCompleted ? "checkmark.square.fill" : "square")
-                .font(.system(size: 20, weight: .medium))
-                .foregroundColor(set.isCompleted ? .green : .gray)
-                .frame(width: columnWidth * 0.1, alignment: .center)
-                .onTapGesture {
-                    workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
-                }
         }
-        .padding(.vertical, 1)
         .onAppear {
             weightText = set.weight > 0 ? "\(Int(set.weight))" : ""
             repsText = set.reps > 0 ? "\(set.reps)" : ""
