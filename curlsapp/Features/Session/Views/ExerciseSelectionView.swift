@@ -24,117 +24,7 @@ struct ExerciseSelectionView: View {
         NavigationStack(path: $navigationPath) {
             ScrollViewReader { scrollProxy in
                 ZStack {
-                    VStack(spacing: 0) {
-                        // Muscle group filter buttons - balanced 3-column grid
-                        VStack(spacing: 8) {
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
-                                // All button
-                                Button("All") {
-                                    viewModel.selectedMuscleGroup = nil
-                                }
-                                .buttonStyle(FilterButtonStyle(isSelected: viewModel.selectedMuscleGroup == nil))
-                                
-                                // Muscle group buttons
-                                ForEach(MuscleGroup.allCases, id: \.self) { group in
-                                    Button(group.rawValue) {
-                                        viewModel.selectedMuscleGroup = group
-                                    }
-                                    .buttonStyle(FilterButtonStyle(isSelected: viewModel.selectedMuscleGroup == group))
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 0)
-                        .padding(.bottom, 10)
-                        
-                        // Sectioned exercise list
-                        List {
-                            ForEach(viewModel.alphabetSections, id: \.self) { section in
-                                Section {
-                                    ForEach((viewModel.sectionedExercises[section] ?? []).filter { !excludedExerciseIds.contains($0.id) }) { exercise in
-                                        let isSelected = selectedExercises.contains(where: { $0.id == exercise.id })
-                                        
-                                        HStack {
-                                            VStack(alignment: .leading, spacing: 8) {
-                                                Text(exercise.name.capitalized)
-                                                    .font(.headline)
-                                                    .foregroundColor(.primary)
-                                                
-                                                Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
-                                                    .font(.subheadline)
-                                                    .foregroundColor(.secondary)
-                                            }
-                                            
-                                            Spacer()
-                                            
-                                            Button(action: {
-                                                navigationPath.append(exercise)
-                                            }) {
-                                                Image(systemName: "info.circle")
-                                                    .foregroundColor(.accentColor)
-                                                    .font(.title2)
-                                            }
-                                            .buttonStyle(PlainButtonStyle())
-                                        }
-                                        .contentShape(Rectangle())
-                                        .onTapGesture {
-                                            if isSelected {
-                                                selectedExercises.removeAll { $0.id == exercise.id }
-                                            } else {
-                                                selectedExercises.append(exercise)
-                                            }
-                                        }
-                                        .padding(.vertical, 16)
-                                        .padding(.horizontal, 16)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .fill(isSelected ? Color.accentColor.opacity(0.1) : Color.clear)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 8)
-                                                        .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
-                                                )
-                                        )
-                                        .listRowBackground(Color.clear)
-                                        .listRowSeparator(.hidden)
-                                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 40))
-                                    }
-                                } header: {
-                                    Text(section)
-                                        .font(.caption)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.secondary)
-                                        .padding(.horizontal, 16)
-                                        .padding(.top, 8)
-                                        .padding(.bottom, 4)
-                                        .id(section)
-                                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
-                                }
-                                .headerProminence(.standard)
-                            }
-                        }
-                        .listStyle(.plain)
-                        .listSectionSeparator(.hidden)
-                        
-                        if !selectedExercises.isEmpty {
-                            Button(action: {
-                                for exercise in selectedExercises {
-                                    onExerciseSelected(exercise)
-                                }
-                                dismiss()
-                            }) {
-                                Text("Add \(selectedExercises.count) Exercise\(selectedExercises.count == 1 ? "" : "s") to Workout")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.accentColor)
-                                    .cornerRadius(10)
-                            }
-                            .padding()
-                        }
-                    }.padding(.top, 4)
-                    
-                    // Alphabet index on the right
+                    mainContentView
                     HStack {
                         Spacer()
                         AlphabetIndexView(
@@ -173,6 +63,148 @@ struct ExerciseSelectionView: View {
                 }
             }
         }
+    }
+    
+    private var mainContentView: some View {
+        VStack(spacing: 0) {
+            muscleGroupFilters
+            exercisesList
+            addExercisesButton
+        }
+        .padding(.top, 4)
+    }
+    
+    private var muscleGroupFilters: some View {
+        VStack(spacing: 8) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
+                Button("All") {
+                    viewModel.selectedMuscleGroup = nil
+                }
+                .buttonStyle(FilterButtonStyle(isSelected: viewModel.selectedMuscleGroup == nil))
+                
+                ForEach(MuscleGroup.allCases, id: \.self) { group in
+                    Button(group.rawValue) {
+                        viewModel.selectedMuscleGroup = group
+                    }
+                    .buttonStyle(FilterButtonStyle(isSelected: viewModel.selectedMuscleGroup == group))
+                }
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top, 0)
+        .padding(.bottom, 10)
+    }
+    
+    private var exercisesList: some View {
+        List {
+            ForEach(viewModel.alphabetSections, id: \.self) { section in
+                Section {
+                    ForEach(filteredExercises(for: section)) { exercise in
+                        ExerciseRowView(
+                            exercise: exercise,
+                            isSelected: selectedExercises.contains(where: { $0.id == exercise.id }),
+                            onTap: { toggleExerciseSelection(exercise) },
+                            onInfoTap: { navigationPath.append(exercise) }
+                        )
+                    }
+                } header: {
+                    sectionHeader(section)
+                }
+                .headerProminence(.standard)
+            }
+        }
+        .listStyle(.plain)
+        .listSectionSeparator(.hidden)
+    }
+    
+    @ViewBuilder
+    private var addExercisesButton: some View {
+        if !selectedExercises.isEmpty {
+            Button(action: {
+                for exercise in selectedExercises {
+                    onExerciseSelected(exercise)
+                }
+                dismiss()
+            }) {
+                Text("Add \(selectedExercises.count) Exercise\(selectedExercises.count == 1 ? "" : "s") to Workout")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.accentColor)
+                    .cornerRadius(10)
+            }
+            .padding()
+        }
+    }
+    
+    private func filteredExercises(for section: String) -> [Exercise] {
+        (viewModel.sectionedExercises[section] ?? []).filter { !excludedExerciseIds.contains($0.id) }
+    }
+    
+    private func sectionHeader(_ section: String) -> some View {
+        Text(section)
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundColor(.secondary)
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 4)
+            .id(section)
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
+    }
+    
+    private func toggleExerciseSelection(_ exercise: Exercise) {
+        if selectedExercises.contains(where: { $0.id == exercise.id }) {
+            selectedExercises.removeAll { $0.id == exercise.id }
+        } else {
+            selectedExercises.append(exercise)
+        }
+    }
+}
+
+private struct ExerciseRowView: View {
+    let exercise: Exercise
+    let isSelected: Bool
+    let onTap: () -> Void
+    let onInfoTap: () -> Void
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(exercise.name.capitalized)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            Button(action: onInfoTap) {
+                Image(systemName: "info.circle")
+                    .foregroundColor(.accentColor)
+                    .font(.title2)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onTap)
+        .padding(.vertical, 16)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isSelected ? Color.accentColor.opacity(0.1) : Color.clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                )
+        )
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 40))
     }
 }
 
