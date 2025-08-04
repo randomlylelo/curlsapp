@@ -17,6 +17,7 @@ struct WorkoutSessionView: View {
     @State private var startTime = Date()
     @State private var isEditingTitle = false
     @State private var showingExerciseSelection = false
+    @State private var showingCancelConfirmation = false
     
     private func getDefaultWorkoutTitle() -> String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -176,10 +177,8 @@ struct WorkoutSessionView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Discard Workout") {
-                        workoutManager.endWorkout()
-                        isPresented = false
-                        dismiss()
+                    Button("Cancel") {
+                        showingCancelConfirmation = true
                     }
                     .foregroundColor(.red)
                 }
@@ -212,6 +211,52 @@ struct WorkoutSessionView: View {
         .sheet(isPresented: $showingExerciseSelection) {
             ExerciseSelectionView(excludedExerciseIds: Set(workoutManager.exercises.map { $0.exercise.id })) { exercise in
                 workoutManager.addExercise(exercise)
+            }
+        }
+        .overlay {
+            if showingCancelConfirmation {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        showingCancelConfirmation = false
+                    }
+                
+                VStack(spacing: 20) {
+                    Text("Cancel Workout")
+                        .font(.title2.weight(.semibold))
+                        .foregroundColor(.primary)
+                    
+                    Text("All progress will be lost.")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                    
+                    VStack(spacing: 12) {
+                        Button("Cancel Workout") {
+                            showingCancelConfirmation = false
+                            workoutManager.endWorkout()
+                            isPresented = false
+                            dismiss()
+                        }
+                        .font(.headline)
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .background(Color.red.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        
+                        Button("Continue") {
+                            showingCancelConfirmation = false
+                        }
+                        .font(.headline)
+                        .foregroundColor(.blue)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                    }
+                }
+                .padding(24)
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(radius: 10)
+                .padding(.horizontal, 40)
             }
         }
     }
