@@ -143,27 +143,57 @@ struct WorkoutSessionView: View {
                             ForEach(workoutManager.exercises.indices, id: \.self) { index in
                                 let workoutExercise = workoutManager.exercises[index]
                                 
-                                if isReorderingMode {
-                                    CompactExerciseTitleView(
-                                        exercise: workoutExercise.exercise,
-                                        index: index,
-                                        isDragged: draggedExerciseIndex == index,
-                                        dropTargetIndex: dropTargetIndex,
-                                        dragOffset: $dragOffset,
-                                        onDragChanged: handleDragChanged,
-                                        onDragEnded: handleDragEnded
-                                    )
-                                } else {
-                                    ExerciseCardView(
-                                        workoutExercise: workoutExercise,
-                                        onLongPress: {
-                                            draggedExerciseIndex = index
-                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                                isReorderingMode = true
+                                // Exercise container with persistent gesture
+                                VStack {
+                                    if isReorderingMode {
+                                        CompactExerciseTitleView(
+                                            exercise: workoutExercise.exercise,
+                                            index: index,
+                                            isDragged: draggedExerciseIndex == index,
+                                            dropTargetIndex: dropTargetIndex,
+                                            dragOffset: $dragOffset
+                                        )
+                                    } else {
+                                        ExerciseCardView(workoutExercise: workoutExercise)
+                                    }
+                                }
+                                .gesture(
+                                    LongPressGesture(minimumDuration: 0.5)
+                                        .sequenced(before: DragGesture(coordinateSpace: .global))
+                                        .onChanged { value in
+                                            switch value {
+                                            case .first(let isPressed):
+                                                if isPressed {
+                                                    // Long press completed - switch to compact mode
+                                                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                                    impactFeedback.impactOccurred()
+                                                    
+                                                    draggedExerciseIndex = index
+                                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                                        isReorderingMode = true
+                                                    }
+                                                }
+                                            case .second(let isPressed, let drag):
+                                                if isPressed, let drag = drag {
+                                                    // Drag is happening - handle drag
+                                                    handleDragChanged(draggedIndex: index, translation: drag.translation)
+                                                }
+                                            default:
+                                                break
                                             }
                                         }
-                                    )
-                                }
+                                        .onEnded { value in
+                                            switch value {
+                                            case .second(let isPressed, _):
+                                                if isPressed {
+                                                    // Drag ended
+                                                    handleDragEnded(draggedIndex: index)
+                                                }
+                                            default:
+                                                break
+                                            }
+                                        }
+                                )
                             }
                         }
                         .padding(.top, 8)

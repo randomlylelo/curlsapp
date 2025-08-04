@@ -14,9 +14,7 @@ struct CompactExerciseTitleView: View {
     let dropTargetIndex: Int?
     @Binding var dragOffset: CGSize
     
-    // Callbacks
-    let onDragChanged: (Int, CGSize) -> Void
-    let onDragEnded: (Int) -> Void
+    // Note: Drag gestures are now handled by parent ExerciseCardView
     
     var body: some View {
         VStack(spacing: 0) {
@@ -60,17 +58,6 @@ struct CompactExerciseTitleView: View {
             .offset(isDragged ? dragOffset : .zero)
             .opacity(isDragged ? 0.9 : 1.0)
             .animation(.spring(response: 0.4, dampingFraction: 0.75).delay(Double(index) * 0.02), value: isDragged)
-            .gesture(
-                isDragged ? 
-                DragGesture(coordinateSpace: .global)
-                    .onChanged { gesture in
-                        onDragChanged(index, gesture.translation)
-                    }
-                    .onEnded { gesture in
-                        onDragEnded(index)
-                    }
-                : nil
-            )
         }
     }
 }
@@ -94,9 +81,7 @@ struct CompactExerciseTitleView: View {
             index: 0,
             isDragged: false,
             dropTargetIndex: nil,
-            dragOffset: .constant(.zero),
-            onDragChanged: { _, _ in },
-            onDragEnded: { _ in }
+            dragOffset: .constant(.zero)
         )
         
         CompactExerciseTitleView(
@@ -116,9 +101,7 @@ struct CompactExerciseTitleView: View {
             index: 1,
             isDragged: true,
             dropTargetIndex: 1,
-            dragOffset: .constant(CGSize(width: 0, height: 20)),
-            onDragChanged: { _, _ in },
-            onDragEnded: { _ in }
+            dragOffset: .constant(CGSize(width: 0, height: 20))
         )
     }
     .padding()
