@@ -87,7 +87,7 @@ struct ExerciseCardView: View {
             .padding(.top, 8)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.vertical, 12)
     }
 }
 
@@ -266,7 +266,7 @@ struct WorkoutSessionView: View {
                     } else {
                         // Exercise list
                         ScrollView {
-                            LazyVStack(spacing: 16) {
+                            LazyVStack(spacing: 8) {
                                 ForEach(workoutManager.exercises) { workoutExercise in
                                     ExerciseCardView(workoutExercise: workoutExercise)
                                 }
@@ -290,7 +290,7 @@ struct WorkoutSessionView: View {
                                 .padding(.horizontal)
                                 .padding(.top, 8)
                             }
-                            .padding(.top)
+                            .padding(.top, 0)
                         }
                     }
                     
@@ -367,5 +367,9 @@ struct WorkoutSessionView: View {
             }
         }
     }
+}
+
+#Preview {
+    WorkoutSessionView(isPresented: .constant(true))
 }
 
