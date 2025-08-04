@@ -7,6 +7,37 @@
 
 import SwiftUI
 
+struct NumberInputField: View {
+    @Binding var value: String
+    let placeholder: String
+    let onValueChange: (String) -> Void
+    
+    var body: some View {
+        TextField(placeholder, text: $value)
+            .textFieldStyle(PlainTextFieldStyle())
+            .keyboardType(.numberPad)
+            .multilineTextAlignment(.center)
+            .font(.system(size: 16, weight: .medium))
+            .frame(height: 36)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color(.systemGray6))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color(.systemGray4), lineWidth: 0.5)
+                    )
+            )
+            .onChange(of: value) { _, newValue in
+                // Filter to only allow numbers and decimal point
+                let filtered = newValue.filter { "0123456789.".contains($0) }
+                if filtered != newValue {
+                    value = filtered
+                }
+                onValueChange(filtered)
+            }
+    }
+}
+
 struct ExerciseCardView: View {
     @ObservedObject var workoutManager = WorkoutManager.shared
     let workoutExercise: WorkoutExercise
@@ -102,66 +133,156 @@ struct SetRowView: View {
     
     @State private var weightText: String = ""
     @State private var repsText: String = ""
+    @State private var dragOffset: CGSize = .zero
+    @State private var showingDeleteAction = false
+    @State private var showingCompleteAction = false
     
     var body: some View {
         ZStack {
-            // Full-width background highlight for completed sets
-            Rectangle()
-                .fill(set.isCompleted ? Color.green.opacity(0.1) : Color.clear)
-            
-            // Main content with exact proportions matching header: 0.1, 0.4, 0.2, 0.2, 0.1
-            HStack(spacing: 0) {
-                // Set number - 0.1 width
-                Text("\(setNumber)")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.secondary)
-                    .frame(width: columnWidth * 0.1, alignment: .center)
-                
-                // Previous weight - 0.4 width
-                Text(set.previousWeight > 0 ? "\(Int(set.previousWeight))" : "-")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.secondary)
-                    .frame(width: columnWidth * 0.4, alignment: .center)
-                
-                // Weight input - 0.2 width
-                TextField("0", text: $weightText)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .keyboardType(.numberPad)
-                    .frame(width: columnWidth * 0.2, height: 36)
-                    .multilineTextAlignment(.center)
-                    .font(.system(size: 16, weight: .medium))
-                    .onChange(of: weightText) { _, newValue in
-                        if let weight = Double(newValue) {
-                            workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, weight: weight)
-                        }
-                    }.padding(.trailing, 4)
-                
-                // Reps input - 0.2 width  
-                TextField("0", text: $repsText)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .keyboardType(.numberPad)
-                    .frame(width: columnWidth * 0.2, height: 36)
-                    .multilineTextAlignment(.center)
-                    .font(.system(size: 16, weight: .medium))
-                    .onChange(of: repsText) { _, newValue in
-                        if let reps = Int(newValue) {
-                            workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, reps: reps)
-                        }
-                    }.padding(.leading, 4)
-                
-                // Checkmark - 0.1 width
-                Image(systemName: set.isCompleted ? "checkmark.square.fill" : "square")
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(set.isCompleted ? .green : .gray)
-                    .frame(width: columnWidth * 0.1, alignment: .center)
-                    .onTapGesture {
-                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                        impactFeedback.impactOccurred()
-                        workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
+            // Background actions
+            HStack {
+                // Left side - Delete action
+                if showingDeleteAction {
+                    HStack {
+                        Image(systemName: "trash")
+                            .foregroundColor(.white)
+                            .font(.title2)
+                        Text("Delete")
+                            .foregroundColor(.white)
+                            .font(.headline)
                     }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 40)
+                    .background(Color.red)
+                }
+                
+                Spacer()
+                
+                // Right side - Complete action
+                if showingCompleteAction {
+                    HStack {
+                        Text(set.isCompleted ? "Undo" : "Complete")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                        Image(systemName: set.isCompleted ? "arrow.uturn.backward" : "checkmark")
+                            .foregroundColor(.white)
+                            .font(.title2)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 40)
+                    .background(Color.green)
+                }
             }
             
+            // Main content
+            ZStack {
+                // Background highlight for completed sets
+                Rectangle()
+                    .fill(set.isCompleted ? Color.green.opacity(0.1) : Color(.systemBackground))
+                
+                // Content with exact proportions matching header: 0.1, 0.4, 0.2, 0.2, 0.1
+                HStack(spacing: 0) {
+                    // Set number - 0.1 width
+                    Text("\(setNumber)")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .frame(width: columnWidth * 0.1, alignment: .center)
+                    
+                    // Previous weight - 0.4 width
+                    Text(set.previousWeight > 0 ? "\(Int(set.previousWeight))" : "-")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .frame(width: columnWidth * 0.4, alignment: .center)
+                    
+                    // Weight input - 0.2 width
+                    NumberInputField(
+                        value: $weightText,
+                        placeholder: "0",
+                        onValueChange: { newValue in
+                            if let weight = Double(newValue) {
+                                workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, weight: weight)
+                            }
+                        }
+                    )
+                    .frame(width: columnWidth * 0.2)
+                    .padding(.trailing, 4)
+                    
+                    // Reps input - 0.2 width  
+                    NumberInputField(
+                        value: $repsText,
+                        placeholder: "0",
+                        onValueChange: { newValue in
+                            if let reps = Int(newValue) {
+                                workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, reps: reps)
+                            }
+                        }
+                    )
+                    .frame(width: columnWidth * 0.2)
+                    .padding(.leading, 4)
+                    
+                    // Checkmark - 0.1 width
+                    Image(systemName: set.isCompleted ? "checkmark.square.fill" : "square")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(set.isCompleted ? .green : .gray)
+                        .frame(width: columnWidth * 0.1, alignment: .center)
+                        .onTapGesture {
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                            impactFeedback.impactOccurred()
+                            workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
+                        }
+                }
+            }
+            .offset(dragOffset)
+            .gesture(
+                DragGesture()
+                    .onChanged { gesture in
+                        let translation = gesture.translation
+                        
+                        // Only allow horizontal swipes (ignore vertical)
+                        if abs(translation.width) > abs(translation.height) {
+                            dragOffset = CGSize(width: translation.width, height: 0)
+                            
+                            // Show appropriate action based on drag direction
+                            if translation.width < -50 {
+                                showingDeleteAction = true
+                                showingCompleteAction = false
+                            } else if translation.width > 50 {
+                                showingCompleteAction = true
+                                showingDeleteAction = false
+                            } else {
+                                showingDeleteAction = false
+                                showingCompleteAction = false
+                            }
+                        }
+                    }
+                    .onEnded { gesture in
+                        let translation = gesture.translation
+                        
+                        // Only handle horizontal swipes
+                        if abs(translation.width) > abs(translation.height) {
+                            if translation.width < -100 {
+                                // Left swipe - Delete
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                                impactFeedback.impactOccurred()
+                                workoutManager.deleteSet(exerciseId: exerciseId, setId: set.id)
+                            } else if translation.width > 100 {
+                                // Right swipe - Toggle complete
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
+                                workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
+                            }
+                        }
+                        
+                        // Reset position and actions
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            dragOffset = .zero
+                            showingDeleteAction = false
+                            showingCompleteAction = false
+                        }
+                    }
+            )
         }
+        .clipShape(Rectangle())
         .onAppear {
             weightText = set.weight > 0 ? "\(Int(set.weight))" : ""
             repsText = set.reps > 0 ? "\(set.reps)" : ""

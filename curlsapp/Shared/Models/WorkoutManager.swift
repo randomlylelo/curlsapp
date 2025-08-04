@@ -97,6 +97,15 @@ class WorkoutManager: ObservableObject {
         }
     }
     
+    func deleteSet(exerciseId: UUID, setId: UUID) {
+        if let exerciseIndex = exercises.firstIndex(where: { $0.id == exerciseId }),
+           let setIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == setId }) {
+            // Don't allow deleting the last set
+            guard exercises[exerciseIndex].sets.count > 1 else { return }
+            exercises[exerciseIndex].sets.remove(at: setIndex)
+        }
+    }
+    
     private func updateElapsedTime() {
         guard let startTime = startTime else { return }
         elapsedTime = Date().timeIntervalSince(startTime)
