@@ -10,9 +10,15 @@ import SwiftUI
 struct ExerciseSelectionView: View {
     @Environment(\.dismiss) private var dismiss
     let onExerciseSelected: (Exercise) -> Void
+    let excludedExerciseIds: Set<String>
     @State private var viewModel = ExercisesViewModel()
     @State private var selectedExercises: [Exercise] = []
     @State private var navigationPath = NavigationPath()
+    
+    init(excludedExerciseIds: Set<String> = [], onExerciseSelected: @escaping (Exercise) -> Void) {
+        self.excludedExerciseIds = excludedExerciseIds
+        self.onExerciseSelected = onExerciseSelected
+    }
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -45,7 +51,7 @@ struct ExerciseSelectionView: View {
                         List {
                             ForEach(viewModel.alphabetSections, id: \.self) { section in
                                 Section {
-                                    ForEach(viewModel.sectionedExercises[section] ?? []) { exercise in
+                                    ForEach((viewModel.sectionedExercises[section] ?? []).filter { !excludedExerciseIds.contains($0.id) }) { exercise in
                                         let isSelected = selectedExercises.contains(where: { $0.id == exercise.id })
                                         
                                         HStack {
@@ -191,7 +197,7 @@ private struct FilterButtonStyle: ButtonStyle {
 }
 
 #Preview {
-    ExerciseSelectionView { exercise in
+    ExerciseSelectionView(excludedExerciseIds: []) { exercise in
         print("Selected exercise: \(exercise.name)")
     }
 }

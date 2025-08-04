@@ -67,6 +67,11 @@ class WorkoutManager: ObservableObject {
     }
     
     func addExercise(_ exercise: Exercise) {
+        // Check if exercise is already in the workout
+        guard !exercises.contains(where: { $0.exercise.id == exercise.id }) else {
+            return
+        }
+        
         let workoutExercise = WorkoutExercise(exercise: exercise)
         exercises.append(workoutExercise)
     }

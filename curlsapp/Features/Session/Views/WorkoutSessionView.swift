@@ -371,7 +371,7 @@ struct WorkoutSessionView: View {
             )
         }
         .sheet(isPresented: $showingExerciseSelection) {
-            ExerciseSelectionView { exercise in
+            ExerciseSelectionView(excludedExerciseIds: Set(workoutManager.exercises.map { $0.exercise.id })) { exercise in
                 workoutManager.addExercise(exercise)
             }
         }
