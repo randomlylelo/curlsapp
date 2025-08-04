@@ -33,115 +33,89 @@ struct WorkoutSessionView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 0) {
-                // Header with title, timer, and notes
-                VStack(alignment: .leading, spacing: 16) {
-                    // Editable title with edit button
-                    HStack {
-                        if isEditingTitle {
-                            TextField(getDefaultWorkoutTitle(), text: $workoutManager.workoutTitle)
-                                .font(.title.weight(.semibold))
-                                .textFieldStyle(PlainTextFieldStyle())
-                                .onSubmit {
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    // Header with title, timer, and notes
+                    VStack(alignment: .leading, spacing: 16) {
+                        // Editable title with edit button
+                        HStack {
+                            if isEditingTitle {
+                                TextField(getDefaultWorkoutTitle(), text: $workoutManager.workoutTitle)
+                                    .font(.title.weight(.semibold))
+                                    .textFieldStyle(PlainTextFieldStyle())
+                                    .onSubmit {
+                                        isEditingTitle = false
+                                    }
+                                
+                                Button("Done") {
                                     isEditingTitle = false
                                 }
-                            
-                            Button("Done") {
-                                isEditingTitle = false
-                            }
-                            .font(.subheadline)
-                            .foregroundColor(.blue)
-                        } else {
-                            Button(action: {
-                                isEditingTitle = true
-                            }) {
-                                HStack {
-                                    Text(workoutManager.workoutTitle.isEmpty ? getDefaultWorkoutTitle() : workoutManager.workoutTitle)
-                                        .font(.title.weight(.semibold))
-                                        .foregroundColor(.primary)
-                                    
-                                    Image(systemName: "pencil")
-                                        .font(.title)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
-                        
-                        Spacer()
-                    }
-                    
-                    // Timer below title
-                    HStack(spacing: 6) {
-                        Image(systemName: "stopwatch")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.secondary)
-                        
-                        Text(formatTime(elapsedTime))
-                            .font(.system(size: 20, weight: .bold, design: .monospaced))
-                            .foregroundColor(.primary)
-                    }
-                    
-                    // Single line notes
-                    TextField("Add notes...", text: $workoutManager.workoutNotes)
-                        .textFieldStyle(PlainTextFieldStyle())
-                }
-                .padding()
-                
-                // Content area
-                VStack(spacing: 0) {
-                    if workoutManager.exercises.isEmpty {
-                        // Add Exercise button when no exercises
-                        VStack(spacing: 20) {
-                            Button(action: {
-                                showingExerciseSelection = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "plus.circle.fill")
-                                        .font(.title2)
-                                    Text("Add Exercise")
-                                        .font(.headline)
-                                }
+                                .font(.subheadline)
                                 .foregroundColor(.blue)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue.opacity(0.1))
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            } else {
+                                Button(action: {
+                                    isEditingTitle = true
+                                }) {
+                                    HStack {
+                                        Text(workoutManager.workoutTitle.isEmpty ? getDefaultWorkoutTitle() : workoutManager.workoutTitle)
+                                            .font(.title.weight(.semibold))
+                                            .foregroundColor(.primary)
+                                        
+                                        Image(systemName: "pencil")
+                                            .font(.title)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
                             }
-                            .padding(.horizontal)
-                            .padding(.top)
                             
                             Spacer()
                         }
-                    } else {
-                        // Exercise list
-                        ScrollView {
-                            LazyVStack(spacing: 8) {
-                                ForEach(workoutManager.exercises) { workoutExercise in
-                                    ExerciseCardView(workoutExercise: workoutExercise)
-                                }
-                                
-                                // Add Exercise button at bottom
-                                Button(action: {
-                                    showingExerciseSelection = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "plus.circle.fill")
-                                            .font(.title2)
-                                        Text("Add Exercise")
-                                            .font(.headline)
-                                    }
-                                    .foregroundColor(.blue)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue.opacity(0.1))
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                }
-                                .padding(.horizontal)
-                                .padding(.top, 8)
-                            }
-                            .padding(.top, 0)
+                        
+                        // Timer below title
+                        HStack(spacing: 6) {
+                            Image(systemName: "stopwatch")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(.secondary)
+                            
+                            Text(formatTime(elapsedTime))
+                                .font(.system(size: 20, weight: .bold, design: .monospaced))
+                                .foregroundColor(.primary)
                         }
+                        
+                        // Single line notes
+                        TextField("Add notes...", text: $workoutManager.workoutNotes)
+                            .textFieldStyle(PlainTextFieldStyle())
                     }
+                    .padding()
+                    
+                    // Exercise list
+                    if !workoutManager.exercises.isEmpty {
+                        LazyVStack(spacing: 8) {
+                            ForEach(workoutManager.exercises) { workoutExercise in
+                                ExerciseCardView(workoutExercise: workoutExercise)
+                            }
+                        }
+                        .padding(.top, 8)
+                    }
+                    
+                    // Add Exercise button
+                    Button(action: {
+                        showingExerciseSelection = true
+                    }) {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                            Text("Add Exercise")
+                                .font(.headline)
+                        }
+                        .foregroundColor(.blue)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, workoutManager.exercises.isEmpty ? 20 : 8)
                     
                     // Finish button
                     Button(action: {
@@ -158,6 +132,7 @@ struct WorkoutSessionView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                     .padding(.horizontal)
+                    .padding(.top, 16)
                     .padding(.bottom)
                 }
             }

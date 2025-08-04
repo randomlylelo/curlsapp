@@ -44,7 +44,7 @@ struct ExerciseCardView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 10) {
             // Exercise title
             Text(workoutExercise.exercise.name)
                 .font(.title3.weight(.semibold))
@@ -112,13 +112,13 @@ struct ExerciseCardView: View {
                     Text("Add Set")
                         .font(.system(size: 16, weight: .medium))
                 }
-                .foregroundColor(.blue)
+                .foregroundColor(.primary)
+                .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
-                .padding(.horizontal, 12)
-                .background(Color.blue.opacity(0.1))
+                .background(Color(.systemGray5))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-            .padding(.top, 8)
+            .padding(.top, 0)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
