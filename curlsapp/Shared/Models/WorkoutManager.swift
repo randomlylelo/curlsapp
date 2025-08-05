@@ -119,4 +119,48 @@ class WorkoutManager: ObservableObject {
         guard let startTime = startTime else { return }
         elapsedTime = Date().timeIntervalSince(startTime)
     }
+    
+    func createCompletedWorkout() -> CompletedWorkout? {
+        guard let startTime = startTime else { return nil }
+        
+        let completedExercises = exercises.compactMap { workoutExercise -> CompletedExercise? in
+            let completedSets = workoutExercise.sets.compactMap { set -> CompletedSet? in
+                guard set.isCompleted else { return nil }
+                return CompletedSet(weight: set.weight, reps: set.reps)
+            }
+            
+            guard !completedSets.isEmpty else { return nil }
+            
+            return CompletedExercise(
+                exerciseId: workoutExercise.exercise.id,
+                exerciseName: workoutExercise.exercise.name,
+                sets: completedSets
+            )
+        }
+        
+        guard !completedExercises.isEmpty else { return nil }
+        
+        let defaultTitle = getDefaultWorkoutTitle()
+        
+        return CompletedWorkout(
+            title: workoutTitle.isEmpty ? defaultTitle : workoutTitle,
+            notes: workoutNotes,
+            startDate: startTime,
+            endDate: Date(),
+            duration: elapsedTime,
+            exercises: completedExercises
+        )
+    }
+    
+    private func getDefaultWorkoutTitle() -> String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12:
+            return "Morning Workout"
+        case 12..<17:
+            return "Afternoon Workout"
+        default:
+            return "Evening Workout"
+        }
+    }
 }

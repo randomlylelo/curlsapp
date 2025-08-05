@@ -260,9 +260,19 @@ struct WorkoutSessionView: View {
                     
                     // Finish button
                     Button(action: {
-                        workoutManager.endWorkout()
-                        isPresented = false
-                        dismiss()
+                        Task {
+                            if let completedWorkout = workoutManager.createCompletedWorkout() {
+                                do {
+                                    try await WorkoutStorageService.shared.saveWorkout(completedWorkout)
+                                } catch {
+                                    print("Failed to save workout: \(error)")
+                                }
+                            }
+                            
+                            workoutManager.endWorkout()
+                            isPresented = false
+                            dismiss()
+                        }
                     }) {
                         Text("Finish Workout")
                             .font(.headline)
