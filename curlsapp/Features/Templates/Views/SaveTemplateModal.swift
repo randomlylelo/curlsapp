@@ -9,14 +9,12 @@ import SwiftUI
 
 struct SaveTemplateModal: View {
     let completedWorkout: CompletedWorkout
-    let onSave: (String, String) -> Void
+    let onSave: (String) -> Void
     let onSkip: () -> Void
     
     @State private var templateName: String = ""
-    @State private var templateNotes: String = ""
-    @State private var shouldSaveAsTemplate: Bool = true
     
-    init(completedWorkout: CompletedWorkout, onSave: @escaping (String, String) -> Void, onSkip: @escaping () -> Void) {
+    init(completedWorkout: CompletedWorkout, onSave: @escaping (String) -> Void, onSkip: @escaping () -> Void) {
         self.completedWorkout = completedWorkout
         self.onSave = onSave
         self.onSkip = onSkip
@@ -27,126 +25,141 @@ struct SaveTemplateModal: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Workout Summary
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Workout Complete!")
-                            .font(.title.weight(.bold))
-                            .foregroundColor(.primary)
-                        
-                        VStack(spacing: 12) {
-                            WorkoutSummaryRow(title: "Duration", value: completedWorkout.formattedDuration)
-                            WorkoutSummaryRow(title: "Exercises", value: "\(completedWorkout.exercises.count)")
-                            WorkoutSummaryRow(title: "Total Sets", value: "\(completedWorkout.totalSets)")
-                            WorkoutSummaryRow(title: "Volume", value: String(format: "%.0f lbs", completedWorkout.totalVolume))
+                    // Header
+                    VStack(spacing: 8) {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.title2)
+                            Text("Workout Complete")
+                                .font(.title2.weight(.semibold))
                         }
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        
+                        Text("Great job finishing your workout!")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
                     
-                    // Exercise List
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Exercises Completed")
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
+                    // Summary Card
+                    VStack(spacing: 16) {
+                        // Workout title and duration
                         VStack(spacing: 8) {
-                            ForEach(completedWorkout.exercises) { exercise in
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(exercise.exerciseName)
-                                            .font(.subheadline.weight(.medium))
-                                            .foregroundColor(.primary)
-                                        
-                                        Text("\(exercise.sets.count) sets")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Text(exercise.sets.map { "\($0.reps)" }.joined(separator: ", "))
-                                        .font(.caption)
+                            Text(completedWorkout.title)
+                                .font(.headline)
+                                .multilineTextAlignment(.center)
+                            
+                            Text(completedWorkout.formattedDuration)
+                                .font(.title.weight(.semibold))
+                                .foregroundColor(.primary)
+                        }
+                        
+                        Divider()
+                        
+                        // Key stats
+                        HStack(spacing: 40) {
+                            StatView(title: "Exercises", value: "\(completedWorkout.exercises.count)")
+                            StatView(title: "Sets", value: "\(completedWorkout.totalSets)")
+                            StatView(title: "Volume", value: "\(Int(completedWorkout.totalVolume)) lbs")
+                        }
+                        
+                        // Exercise list
+                        if !completedWorkout.exercises.isEmpty {
+                            Divider()
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Exercises")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundColor(.secondary)
+                                
+                                ForEach(completedWorkout.exercises.prefix(3)) { exercise in
+                                    Text("• \(exercise.exerciseName)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.primary)
+                                }
+                                
+                                if completedWorkout.exercises.count > 3 {
+                                    Text("• +\(completedWorkout.exercises.count - 3) more")
+                                        .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
-                                .background(Color(.systemGray6))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
-                        }
-                    }
-                    
-                    // Save as Template Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            Text("Save as Template")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            Spacer()
-                            
-                            Toggle("", isOn: $shouldSaveAsTemplate)
-                        }
-                        
-                        if shouldSaveAsTemplate {
-                            VStack(spacing: 12) {
-                                TextField("Template Name", text: $templateName)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                
-                                TextField("Notes (optional)", text: $templateNotes, axis: .vertical)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .lineLimit(2...4)
-                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
                     .padding()
                     .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     
-                    Spacer(minLength: 100)
+                    // Template save section
+                    VStack(spacing: 16) {
+                        VStack(spacing: 8) {
+                            Text("Save as Template?")
+                                .font(.headline)
+                            
+                            Text("Save this workout as a template to easily repeat it later.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        
+                        VStack(spacing: 12) {
+                            Button(action: {
+                                onSave(templateName)
+                            }) {
+                                Text("Save as Template")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.blue)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                            
+                            Button(action: {
+                                onSkip()
+                            }) {
+                                Text("Finish Without Saving")
+                                    .font(.headline)
+                                    .foregroundColor(.blue)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.clear)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.blue, lineWidth: 1)
+                                    )
+                            }
+                        }
+                    }
                 }
                 .padding()
             }
             .navigationTitle("Workout Summary")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Skip") {
-                        onSkip()
-                    }
-                }
-                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
-                        if shouldSaveAsTemplate && !templateName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            onSave(templateName, templateNotes)
-                        } else {
-                            onSkip()
-                        }
+                        onSkip()
                     }
-                    .fontWeight(.semibold)
                 }
             }
         }
     }
 }
 
-struct WorkoutSummaryRow: View {
+struct StatView: View {
     let title: String
     let value: String
     
     var body: some View {
-        HStack {
-            Text(title)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            
-            Spacer()
-            
+        VStack(spacing: 4) {
             Text(value)
-                .font(.subheadline.weight(.medium))
+                .font(.title3.weight(.semibold))
                 .foregroundColor(.primary)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
     }
 }
@@ -181,7 +194,7 @@ struct WorkoutSummaryRow: View {
     
     SaveTemplateModal(
         completedWorkout: sampleWorkout,
-        onSave: { _, _ in },
+        onSave: { _ in },
         onSkip: { }
     )
 }

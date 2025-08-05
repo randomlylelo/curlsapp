@@ -139,6 +139,7 @@ struct WorkoutSessionView: View {
                                         Text(workoutManager.workoutTitle.isEmpty ? getDefaultWorkoutTitle() : workoutManager.workoutTitle)
                                             .font(.title.weight(.semibold))
                                             .foregroundColor(.primary)
+                                            .lineLimit(1)
                                         
                                         Image(systemName: "pencil")
                                             .font(.title)
@@ -328,7 +329,7 @@ struct WorkoutSessionView: View {
             if let completedWorkout = completedWorkoutForTemplate {
                 SaveTemplateModal(
                     completedWorkout: completedWorkout,
-                    onSave: { templateName, templateNotes in
+                    onSave: { templateName in
                         Task {
                             // Save the workout first
                             do {
@@ -341,7 +342,7 @@ struct WorkoutSessionView: View {
                             let template = TemplateStorageService.shared.createTemplateFromWorkout(
                                 completedWorkout,
                                 name: templateName,
-                                notes: templateNotes
+                                notes: ""
                             )
                             TemplateStorageService.shared.addTemplate(template)
                             
