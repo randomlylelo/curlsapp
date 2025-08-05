@@ -159,15 +159,25 @@ struct ExerciseSelectionView: View {
     }
     
     private func sectionHeader(_ section: String) -> some View {
-        Text(section)
-            .font(.caption)
-            .fontWeight(.semibold)
-            .foregroundColor(.secondary)
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 4)
-            .id(section)
-            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
+        HStack {
+            if section == "★" {
+                Text("CUSTOM")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+            } else {
+                Text(section)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+        .id(section)
+        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
     }
     
     private func toggleExerciseSelection(_ exercise: Exercise) {
@@ -188,16 +198,29 @@ private struct ExerciseRowView: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 8) {
-                Text(exercise.name.capitalized)
-                    .font(.headline)
-                    .foregroundColor(.primary)
+                HStack {
+                    Text(exercise.name.capitalized)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    if exercise.isCustom {
+                        Text("CUSTOM")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
+                    
+                    Spacer()
+                }
                 
                 Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            
-            Spacer()
             
             Button(action: onInfoTap) {
                 Image(systemName: "info.circle")

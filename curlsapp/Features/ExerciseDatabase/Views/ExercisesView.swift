@@ -87,15 +87,25 @@ struct ExercisesView: View {
                                         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
                                     }
                                 } header: {
-                                    Text(section)
-                                        .font(.caption)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.secondary)
-                                        .padding(.horizontal, 16)
-                                        .padding(.top, 8)
-                                        .padding(.bottom, 4)
-                                        .id(section)
-                                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
+                                    HStack {
+                                        if section == "★" {
+                                            Text("CUSTOM")
+                                                .font(.caption)
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.primary)
+                                        } else {
+                                            Text(section)
+                                                .font(.caption)
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.top, 8)
+                                    .padding(.bottom, 4)
+                                    .id(section)
+                                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
                                 }
                                 .headerProminence(.standard)
                             }

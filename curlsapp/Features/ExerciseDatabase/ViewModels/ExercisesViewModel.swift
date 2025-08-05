@@ -11,6 +11,7 @@ import Foundation
 class ExercisesViewModel {
     private(set) var exercises: [Exercise] = []
     private(set) var filteredExercises: [Exercise] = []
+    private(set) var customExercises: [Exercise] = []
     private(set) var sectionedExercises: [String: [Exercise]] = [:]
     private(set) var alphabetSections: [String] = []
     private(set) var isLoading = false
@@ -30,7 +31,7 @@ class ExercisesViewModel {
     private let exerciseService = ExerciseService()
     
     // Full alphabet for the index
-    let fullAlphabet = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", 
+    let fullAlphabet = ["★", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", 
                         "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", 
                         "U", "V", "W", "X", "Y", "Z", "#"]
     
@@ -74,9 +75,28 @@ class ExercisesViewModel {
         // Clear existing sections
         sectionedExercises.removeAll()
         alphabetSections.removeAll()
+        customExercises.removeAll()
         
-        // Group exercises by first letter
-        let grouped = Dictionary(grouping: filteredExercises) { exercise in
+        // Separate custom and regular exercises
+        let (custom, regular) = filteredExercises.reduce(into: ([Exercise](), [Exercise]())) { result, exercise in
+            if exercise.isCustom {
+                result.0.append(exercise)
+            } else {
+                result.1.append(exercise)
+            }
+        }
+        
+        // Sort custom exercises by name
+        customExercises = custom.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        
+        // Add custom exercises section first (if any exist)
+        if !customExercises.isEmpty {
+            sectionedExercises["★"] = customExercises
+            alphabetSections.append("★")
+        }
+        
+        // Group regular exercises by first letter
+        let grouped = Dictionary(grouping: regular) { exercise in
             getSectionKey(for: exercise.name)
         }
         
@@ -87,7 +107,7 @@ class ExercisesViewModel {
             return key1 < key2
         }
         
-        // Update properties
+        // Update properties for regular exercises
         for key in sortedKeys {
             if let exercises = grouped[key], !exercises.isEmpty {
                 // Sort exercises within each section
