@@ -135,6 +135,46 @@ class WorkoutManager: ObservableObject {
         exercises.append(workoutExercise)
     }
     
+    func loadFromTemplate(_ template: WorkoutTemplate) async {
+        // Clear current exercises
+        exercises = []
+        
+        // Set template-based title if no custom title
+        if workoutTitle.isEmpty {
+            workoutTitle = template.name
+        }
+        
+        // Load exercises from template with validation
+        let exerciseService = ExerciseService()
+        let allExercises = await exerciseService.loadAllExercises()
+        let validationResult = await TemplateValidationService.shared.validateTemplate(template)
+        
+        // Load valid exercises
+        for templateExercise in validationResult.validExercises {
+            if let exercise = allExercises.first(where: { $0.id == templateExercise.exerciseId }) {
+                let workoutSets = templateExercise.sets.map { templateSet in
+                    WorkoutSet(
+                        weight: templateSet.weight,
+                        reps: templateSet.reps,
+                        previousWeight: templateSet.weight,
+                        previousReps: templateSet.reps,
+                        isPrefilled: true,
+                        prefilledWeight: templateSet.weight,
+                        prefilledReps: templateSet.reps
+                    )
+                }
+                
+                let workoutExercise = WorkoutExercise(exercise: exercise)
+                var mutableWorkoutExercise = workoutExercise
+                mutableWorkoutExercise.sets = workoutSets
+                exercises.append(mutableWorkoutExercise)
+            }
+        }
+        
+        // Update template last used date
+        TemplateStorageService.shared.updateLastUsedDate(for: template.id)
+    }
+    
     func addSet(to exerciseId: UUID) {
         if let index = exercises.firstIndex(where: { $0.id == exerciseId }) {
             exercises[index].sets.append(WorkoutSet())

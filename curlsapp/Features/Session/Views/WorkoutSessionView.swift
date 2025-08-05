@@ -18,6 +18,8 @@ struct WorkoutSessionView: View {
     @State private var isEditingTitle = false
     @State private var showingExerciseSelection = false
     @State private var showingCancelConfirmation = false
+    @State private var showingSaveTemplateModal = false
+    @State private var completedWorkoutForTemplate: CompletedWorkout?
     
     // Drag and drop state
     @State private var isReorderingMode = false
@@ -260,15 +262,11 @@ struct WorkoutSessionView: View {
                     
                     // Finish button
                     Button(action: {
-                        Task {
-                            if let completedWorkout = workoutManager.createCompletedWorkout() {
-                                do {
-                                    try await WorkoutStorageService.shared.saveWorkout(completedWorkout)
-                                } catch {
-                                    print("Failed to save workout: \(error)")
-                                }
-                            }
-                            
+                        if let completedWorkout = workoutManager.createCompletedWorkout() {
+                            completedWorkoutForTemplate = completedWorkout
+                            showingSaveTemplateModal = true
+                        } else {
+                            // No completed workout, just end
                             workoutManager.endWorkout()
                             isPresented = false
                             dismiss()
@@ -324,6 +322,51 @@ struct WorkoutSessionView: View {
         .sheet(isPresented: $showingExerciseSelection) {
             ExerciseSelectionView(excludedExerciseIds: Set(workoutManager.exercises.map { $0.exercise.id })) { exercise in
                 workoutManager.addExercise(exercise)
+            }
+        }
+        .sheet(isPresented: $showingSaveTemplateModal) {
+            if let completedWorkout = completedWorkoutForTemplate {
+                SaveTemplateModal(
+                    completedWorkout: completedWorkout,
+                    onSave: { templateName, templateNotes in
+                        Task {
+                            // Save the workout first
+                            do {
+                                try await WorkoutStorageService.shared.saveWorkout(completedWorkout)
+                            } catch {
+                                print("Failed to save workout: \(error)")
+                            }
+                            
+                            // Create and save the template
+                            let template = TemplateStorageService.shared.createTemplateFromWorkout(
+                                completedWorkout,
+                                name: templateName,
+                                notes: templateNotes
+                            )
+                            TemplateStorageService.shared.addTemplate(template)
+                            
+                            // End workout and dismiss
+                            workoutManager.endWorkout()
+                            isPresented = false
+                            dismiss()
+                        }
+                    },
+                    onSkip: {
+                        Task {
+                            // Just save the workout without creating template
+                            do {
+                                try await WorkoutStorageService.shared.saveWorkout(completedWorkout)
+                            } catch {
+                                print("Failed to save workout: \(error)")
+                            }
+                            
+                            // End workout and dismiss
+                            workoutManager.endWorkout()
+                            isPresented = false
+                            dismiss()
+                        }
+                    }
+                )
             }
         }
         .overlay {

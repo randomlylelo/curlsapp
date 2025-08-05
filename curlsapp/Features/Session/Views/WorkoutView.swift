@@ -9,36 +9,95 @@ import SwiftUI
 
 struct WorkoutView: View {
     @State private var showingWorkoutSession = false
+    @State private var showingCreateTemplate = false
+    @State private var loadingTemplate = false
     @StateObject private var workoutManager = WorkoutManager.shared
+    @StateObject private var templateStorage = TemplateStorageService.shared
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 12),
-                    GridItem(.flexible(), spacing: 12)
-                ], spacing: 16) {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Start Workout Card
                     WorkoutCard(
                         title: "Start Workout",
                         subtitle: "Begin a new session",
                         icon: "play.circle.fill",
                         color: .blue
                     ) {
+                        workoutManager.startWorkout()
                         showingWorkoutSession = true
                     }
+                    .padding(.horizontal)
                     
-                    WorkoutCard(
-                        title: "Saved Routines",
-                        subtitle: "Your custom workouts",
-                        icon: "bookmark.circle.fill",
-                        color: .green
-                    ) {
-                        // Action for saved routines
+                    // Templates Section
+                    if !templateStorage.templates.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("Templates")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                                    .padding(.horizontal)
+                                
+                                Spacer()
+                                
+                                Button("New", systemImage: "plus") {
+                                    showingCreateTemplate = true
+                                }
+                                .font(.subheadline)
+                                .padding(.horizontal)
+                            }
+                            
+                            LazyVGrid(columns: [
+                                GridItem(.flexible(), spacing: 12),
+                                GridItem(.flexible(), spacing: 12)
+                            ], spacing: 12) {
+                                ForEach(templateStorage.templates) { template in
+                                    TemplateCard(
+                                        template: template,
+                                        onTap: {
+                                            Task {
+                                                loadingTemplate = true
+                                                await workoutManager.loadFromTemplate(template)
+                                                workoutManager.startWorkout()
+                                                loadingTemplate = false
+                                                showingWorkoutSession = true
+                                            }
+                                        },
+                                        onEdit: {
+                                            // TODO: Show edit template sheet
+                                        },
+                                        onDelete: {
+                                            templateStorage.deleteTemplate(template)
+                                        },
+                                        onDuplicate: {
+                                            let duplicatedTemplate = WorkoutTemplate(
+                                                name: "\(template.name) Copy",
+                                                notes: template.notes,
+                                                exercises: template.exercises
+                                            )
+                                            templateStorage.addTemplate(duplicatedTemplate)
+                                        }
+                                    )
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    } else {
+                        // Empty state - show create template card
+                        WorkoutCard(
+                            title: "Create Template",
+                            subtitle: "Save your favorite workouts",
+                            icon: "plus.circle.fill",
+                            color: .green
+                        ) {
+                            showingCreateTemplate = true
+                        }
+                        .padding(.horizontal)
                     }
+                    
+                    Spacer(minLength: 100)
                 }
-                .padding(.horizontal)
-                
-                Spacer()
             }
             .padding(.top)
             .navigationTitle("")
@@ -56,6 +115,27 @@ struct WorkoutView: View {
             }
             .fullScreenCover(isPresented: $showingWorkoutSession) {
                 WorkoutSessionView(isPresented: $showingWorkoutSession)
+            }
+            .sheet(isPresented: $showingCreateTemplate) {
+                CreateTemplateView()
+            }
+            .overlay {
+                if loadingTemplate {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                        .overlay {
+                            VStack(spacing: 16) {
+                                ProgressView()
+                                    .scaleEffect(1.2)
+                                Text("Loading Template...")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white)
+                            }
+                            .padding(24)
+                            .background(Color.black.opacity(0.7))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                }
             }
             .onAppear {
                 // If workout is active but minimized, allow tapping the minimized view to show full screen

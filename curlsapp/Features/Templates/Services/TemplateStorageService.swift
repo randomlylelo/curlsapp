@@ -1,0 +1,295 @@
+//
+//  TemplateStorageService.swift
+//  curlsapp
+//
+//  Created by Leo on 8/5/25.
+//
+
+import Foundation
+
+class TemplateStorageService: ObservableObject {
+    static let shared = TemplateStorageService()
+    
+    @Published var templates: [WorkoutTemplate] = []
+    
+    private let userDefaults = UserDefaults.standard
+    private let templatesKey = "workout_templates"
+    
+    private init() {
+        loadTemplates()
+        createDefaultTemplatesIfNeeded()
+        
+        // Auto-fix broken default templates
+        Task {
+            await validateAndFixDefaultTemplates()
+        }
+    }
+    
+    // MARK: - Load/Save
+    
+    private func loadTemplates() {
+        guard let data = userDefaults.data(forKey: templatesKey),
+              let decodedTemplates = try? JSONDecoder().decode([WorkoutTemplate].self, from: data) else {
+            templates = []
+            return
+        }
+        templates = decodedTemplates
+    }
+    
+    private func saveTemplates() {
+        guard let data = try? JSONEncoder().encode(templates) else { return }
+        userDefaults.set(data, forKey: templatesKey)
+    }
+    
+    // MARK: - CRUD Operations
+    
+    func addTemplate(_ template: WorkoutTemplate) {
+        templates.append(template)
+        saveTemplates()
+    }
+    
+    func updateTemplate(_ template: WorkoutTemplate) {
+        if let index = templates.firstIndex(where: { $0.id == template.id }) {
+            templates[index] = template
+            saveTemplates()
+        }
+    }
+    
+    func deleteTemplate(_ template: WorkoutTemplate) {
+        templates.removeAll { $0.id == template.id }
+        saveTemplates()
+    }
+    
+    func updateLastUsedDate(for templateId: UUID) {
+        if let index = templates.firstIndex(where: { $0.id == templateId }) {
+            templates[index].lastUsedDate = Date()
+            saveTemplates()
+        }
+    }
+    
+    /// Forces recreation of default templates with correct exercise IDs
+    func updateDefaultTemplates() {
+        // Remove old default templates
+        templates.removeAll { $0.isDefault }
+        
+        // Recreate with correct IDs
+        createNewDefaultTemplates()
+        saveTemplates()
+    }
+    
+    private func createNewDefaultTemplates() {
+        let pushTemplate = WorkoutTemplate(
+            name: "Push Day",
+            notes: "Chest, shoulders, and triceps workout",
+            exercises: [
+                TemplateExercise(
+                    exerciseId: "Dumbbell_Bench_Press",
+                    exerciseName: "Dumbbell Bench Press",
+                    sets: [
+                        TemplateSet(weight: 50, reps: 8),
+                        TemplateSet(weight: 50, reps: 8),
+                        TemplateSet(weight: 50, reps: 8)
+                    ]
+                ),
+                TemplateExercise(
+                    exerciseId: "Dumbbell_Shoulder_Press",
+                    exerciseName: "Dumbbell Shoulder Press",
+                    sets: [
+                        TemplateSet(weight: 30, reps: 8),
+                        TemplateSet(weight: 30, reps: 8),
+                        TemplateSet(weight: 30, reps: 8)
+                    ]
+                )
+            ],
+            isDefault: true
+        )
+        
+        let pullTemplate = WorkoutTemplate(
+            name: "Pull Day",
+            notes: "Back and biceps workout",
+            exercises: [
+                TemplateExercise(
+                    exerciseId: "Pullups",
+                    exerciseName: "Pullups",
+                    sets: [
+                        TemplateSet(weight: 0, reps: 8),
+                        TemplateSet(weight: 0, reps: 8),
+                        TemplateSet(weight: 0, reps: 8)
+                    ]
+                ),
+                TemplateExercise(
+                    exerciseId: "Bent_Over_Barbell_Row",
+                    exerciseName: "Bent Over Barbell Row",
+                    sets: [
+                        TemplateSet(weight: 135, reps: 8),
+                        TemplateSet(weight: 135, reps: 8),
+                        TemplateSet(weight: 135, reps: 8)
+                    ]
+                )
+            ],
+            isDefault: true
+        )
+        
+        let legTemplate = WorkoutTemplate(
+            name: "Leg Day",
+            notes: "Quadriceps, hamstrings, and glutes workout",
+            exercises: [
+                TemplateExercise(
+                    exerciseId: "Barbell_Squat",
+                    exerciseName: "Barbell Squat",
+                    sets: [
+                        TemplateSet(weight: 185, reps: 8),
+                        TemplateSet(weight: 185, reps: 8),
+                        TemplateSet(weight: 185, reps: 8)
+                    ]
+                ),
+                TemplateExercise(
+                    exerciseId: "Barbell_Deadlift",
+                    exerciseName: "Barbell Deadlift",
+                    sets: [
+                        TemplateSet(weight: 225, reps: 5),
+                        TemplateSet(weight: 225, reps: 5),
+                        TemplateSet(weight: 225, reps: 5)
+                    ]
+                )
+            ],
+            isDefault: true
+        )
+        
+        templates.append(contentsOf: [pushTemplate, pullTemplate, legTemplate])
+    }
+    
+    /// Automatically validates and fixes default templates if they have invalid exercise IDs
+    private func validateAndFixDefaultTemplates() async {
+        let defaultTemplates = templates.filter { $0.isDefault }
+        var needsUpdate = false
+        
+        for template in defaultTemplates {
+            let validationResult = await TemplateValidationService.shared.validateTemplate(template)
+            if validationResult.hasErrors {
+                needsUpdate = true
+                break
+            }
+        }
+        
+        if needsUpdate {
+            await MainActor.run {
+                updateDefaultTemplates()
+            }
+        }
+    }
+    
+    // MARK: - Utility Methods
+    
+    func createTemplateFromWorkout(_ workout: CompletedWorkout, name: String, notes: String = "") -> WorkoutTemplate {
+        let templateExercises = workout.exercises.map { completedExercise in
+            let templateSets = completedExercise.sets.map { completedSet in
+                TemplateSet(weight: completedSet.weight, reps: completedSet.reps)
+            }
+            return TemplateExercise(
+                exerciseId: completedExercise.exerciseId,
+                exerciseName: completedExercise.exerciseName,
+                sets: templateSets
+            )
+        }
+        
+        return WorkoutTemplate(
+            name: name,
+            notes: notes,
+            exercises: templateExercises
+        )
+    }
+    
+    func createTemplateFromCurrentWorkout(_ workoutManager: WorkoutManager, name: String, notes: String = "") -> WorkoutTemplate? {
+        guard let completedWorkout = workoutManager.createCompletedWorkout() else { return nil }
+        return createTemplateFromWorkout(completedWorkout, name: name, notes: notes)
+    }
+    
+    // MARK: - Default Templates
+    
+    private func createDefaultTemplatesIfNeeded() {
+        guard templates.isEmpty else { return }
+        
+        // Create some basic default templates
+        let pushTemplate = WorkoutTemplate(
+            name: "Push Day",
+            notes: "Chest, shoulders, and triceps workout",
+            exercises: [
+                TemplateExercise(
+                    exerciseId: "Dumbbell_Bench_Press",
+                    exerciseName: "Dumbbell Bench Press",
+                    sets: [
+                        TemplateSet(weight: 50, reps: 8),
+                        TemplateSet(weight: 50, reps: 8),
+                        TemplateSet(weight: 50, reps: 8)
+                    ]
+                ),
+                TemplateExercise(
+                    exerciseId: "Dumbbell_Shoulder_Press",
+                    exerciseName: "Dumbbell Shoulder Press",
+                    sets: [
+                        TemplateSet(weight: 30, reps: 8),
+                        TemplateSet(weight: 30, reps: 8),
+                        TemplateSet(weight: 30, reps: 8)
+                    ]
+                )
+            ],
+            isDefault: true
+        )
+        
+        let pullTemplate = WorkoutTemplate(
+            name: "Pull Day",
+            notes: "Back and biceps workout",
+            exercises: [
+                TemplateExercise(
+                    exerciseId: "Pullups",
+                    exerciseName: "Pullups",
+                    sets: [
+                        TemplateSet(weight: 0, reps: 8),
+                        TemplateSet(weight: 0, reps: 8),
+                        TemplateSet(weight: 0, reps: 8)
+                    ]
+                ),
+                TemplateExercise(
+                    exerciseId: "Bent_Over_Barbell_Row",
+                    exerciseName: "Bent Over Barbell Row",
+                    sets: [
+                        TemplateSet(weight: 135, reps: 8),
+                        TemplateSet(weight: 135, reps: 8),
+                        TemplateSet(weight: 135, reps: 8)
+                    ]
+                )
+            ],
+            isDefault: true
+        )
+        
+        let legTemplate = WorkoutTemplate(
+            name: "Leg Day",
+            notes: "Quadriceps, hamstrings, and glutes workout",
+            exercises: [
+                TemplateExercise(
+                    exerciseId: "Barbell_Squat",
+                    exerciseName: "Barbell Squat",
+                    sets: [
+                        TemplateSet(weight: 185, reps: 8),
+                        TemplateSet(weight: 185, reps: 8),
+                        TemplateSet(weight: 185, reps: 8)
+                    ]
+                ),
+                TemplateExercise(
+                    exerciseId: "Barbell_Deadlift",
+                    exerciseName: "Barbell Deadlift",
+                    sets: [
+                        TemplateSet(weight: 225, reps: 5),
+                        TemplateSet(weight: 225, reps: 5),
+                        TemplateSet(weight: 225, reps: 5)
+                    ]
+                )
+            ],
+            isDefault: true
+        )
+        
+        templates = [pushTemplate, pullTemplate, legTemplate]
+        saveTemplates()
+    }
+}
