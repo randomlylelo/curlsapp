@@ -14,6 +14,7 @@ struct ExerciseSelectionView: View {
     @State private var viewModel = ExercisesViewModel()
     @State private var selectedExercises: [Exercise] = []
     @State private var navigationPath = NavigationPath()
+    @State private var showingAddCustomExercise = false
     
     init(excludedExerciseIds: Set<String> = [], onExerciseSelected: @escaping (Exercise) -> Void) {
         self.excludedExerciseIds = excludedExerciseIds
@@ -56,11 +57,26 @@ struct ExerciseSelectionView: View {
                 ExerciseDetailView(exercise: exercise)
             }
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showingAddCustomExercise = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Cancel") {
                         dismiss()
                     }
                 }
+            }
+            .sheet(isPresented: $showingAddCustomExercise) {
+                AddCustomExerciseView()
+                    .onDisappear {
+                        Task {
+                            await viewModel.loadExercises()
+                        }
+                    }
             }
         }
     }
