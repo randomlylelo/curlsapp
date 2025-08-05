@@ -232,7 +232,7 @@ struct SetRowView: View {
                         setId: set.id,
                         onValueChange: { newValue in
                             if let weight = Double(newValue) {
-                                workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, weight: weight)
+                                workoutManager.updateSetWithWeightPropagation(exerciseId: exerciseId, setId: set.id, weight: weight)
                             }
                         },
                         focusManager: focusManager
@@ -249,7 +249,7 @@ struct SetRowView: View {
                         setId: set.id,
                         onValueChange: { newValue in
                             if let reps = Int(newValue) {
-                                workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, reps: reps)
+                                workoutManager.updateSetWithRepsPropagation(exerciseId: exerciseId, setId: set.id, reps: reps)
                             }
                         },
                         focusManager: focusManager
@@ -323,6 +323,16 @@ struct SetRowView: View {
         .onAppear {
             weightText = set.weight > 0 ? "\(Int(set.weight))" : ""
             repsText = set.reps > 0 ? "\(set.reps)" : ""
+        }
+        .onChange(of: set.weight) { _, newWeight in
+            if focusManager.activeInput?.setId != set.id || focusManager.activeInput?.type != .weight {
+                weightText = newWeight > 0 ? "\(Int(newWeight))" : ""
+            }
+        }
+        .onChange(of: set.reps) { _, newReps in
+            if focusManager.activeInput?.setId != set.id || focusManager.activeInput?.type != .reps {
+                repsText = newReps > 0 ? "\(newReps)" : ""
+            }
         }
     }
 }

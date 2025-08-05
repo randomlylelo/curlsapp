@@ -162,6 +162,46 @@ class WorkoutManager: ObservableObject {
         }
     }
     
+    func updateSetWithWeightPropagation(exerciseId: UUID, setId: UUID, weight: Double) {
+        // Update the specific set first
+        updateSet(exerciseId: exerciseId, setId: setId, weight: weight)
+        
+        // Find the exercise and current set index
+        guard let exerciseIndex = exercises.firstIndex(where: { $0.id == exerciseId }),
+              let currentSetIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == setId }) else { return }
+        
+        let exercise = exercises[exerciseIndex]
+        
+        // Only propagate if multiple sets and weight > 0
+        guard exercise.sets.count > 1, weight > 0 else { return }
+        
+        // Propagate to all sets below the current one
+        for setIndex in (currentSetIndex + 1)..<exercise.sets.count {
+            exercises[exerciseIndex].sets[setIndex].weight = weight
+            exercises[exerciseIndex].sets[setIndex].isPrefilled = false
+        }
+    }
+    
+    func updateSetWithRepsPropagation(exerciseId: UUID, setId: UUID, reps: Int) {
+        // Update the specific set first
+        updateSet(exerciseId: exerciseId, setId: setId, reps: reps)
+        
+        // Find the exercise and current set index
+        guard let exerciseIndex = exercises.firstIndex(where: { $0.id == exerciseId }),
+              let currentSetIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == setId }) else { return }
+        
+        let exercise = exercises[exerciseIndex]
+        
+        // Only propagate if multiple sets and reps > 0
+        guard exercise.sets.count > 1, reps > 0 else { return }
+        
+        // Propagate to all sets below the current one
+        for setIndex in (currentSetIndex + 1)..<exercise.sets.count {
+            exercises[exerciseIndex].sets[setIndex].reps = reps
+            exercises[exerciseIndex].sets[setIndex].isPrefilled = false
+        }
+    }
+    
     func deleteSet(exerciseId: UUID, setId: UUID) {
         if let exerciseIndex = exercises.firstIndex(where: { $0.id == exerciseId }),
            let setIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == setId }) {
