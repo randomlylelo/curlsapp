@@ -49,12 +49,20 @@ struct WorkoutListItemView: View {
                     .padding(.top, 2)
             }
             
-            HStack(spacing: 16) {
-                ForEach(workout.exercises.prefix(3)) { exercise in
-                    Text(exercise.exerciseName)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+            HStack(spacing: 4) {
+                ForEach(Array(workout.exercises.prefix(3).enumerated()), id: \.element.id) { index, exercise in
+                    HStack(spacing: 0) {
+                        Text(exercise.exerciseName)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                        
+                        if index < min(2, workout.exercises.count - 1) {
+                            Text(",")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
                 
                 if workout.exercises.count > 3 {

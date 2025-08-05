@@ -7,6 +7,26 @@
 
 import SwiftUI
 
+// MARK: - Prefill Models
+struct PrefillSet {
+    let weight: Double
+    let reps: Int
+}
+
+struct WorkoutPrefillData {
+    let exerciseId: String
+    let exerciseName: String
+    let suggestedSets: [PrefillSet]
+    let lastWorkoutDate: Date?
+    
+    var timeAgo: String {
+        guard let lastDate = lastWorkoutDate else { return "Never" }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: lastDate, relativeTo: Date())
+    }
+}
+
 // MARK: - Workout Models
 struct WorkoutSet: Identifiable {
     let id = UUID()
@@ -14,6 +34,21 @@ struct WorkoutSet: Identifiable {
     var reps: Int = 0
     var isCompleted: Bool = false
     var previousWeight: Double = 0
+    var previousReps: Int = 0
+    var isPrefilled: Bool = false
+    var prefilledWeight: Double = 0
+    var prefilledReps: Int = 0
+    
+    init(weight: Double = 0, reps: Int = 0, isCompleted: Bool = false, previousWeight: Double = 0, previousReps: Int = 0, isPrefilled: Bool = false, prefilledWeight: Double = 0, prefilledReps: Int = 0) {
+        self.weight = weight
+        self.reps = reps
+        self.isCompleted = isCompleted
+        self.previousWeight = previousWeight
+        self.previousReps = previousReps
+        self.isPrefilled = isPrefilled
+        self.prefilledWeight = prefilledWeight
+        self.prefilledReps = prefilledReps
+    }
 }
 
 struct WorkoutExercise: Identifiable {
@@ -72,7 +107,31 @@ class WorkoutManager: ObservableObject {
             return
         }
         
-        let workoutExercise = WorkoutExercise(exercise: exercise)
+        var workoutExercise = WorkoutExercise(exercise: exercise)
+        
+        // Attempt to prefill from history
+        Task { @MainActor in
+            if let prefillData = WorkoutStorageService.shared.getPrefillData(for: exercise.id) {
+                // Create sets based on previous workout
+                workoutExercise.sets = prefillData.suggestedSets.map { prefillSet in
+                    WorkoutSet(
+                        weight: prefillSet.weight,
+                        reps: prefillSet.reps,
+                        previousWeight: prefillSet.weight,
+                        previousReps: prefillSet.reps,
+                        isPrefilled: true,
+                        prefilledWeight: prefillSet.weight,
+                        prefilledReps: prefillSet.reps
+                    )
+                }
+                
+                // Update the exercise in the array
+                if let index = exercises.firstIndex(where: { $0.exercise.id == exercise.id }) {
+                    exercises[index] = workoutExercise
+                }
+            }
+        }
+        
         exercises.append(workoutExercise)
     }
     
@@ -85,6 +144,12 @@ class WorkoutManager: ObservableObject {
     func updateSet(exerciseId: UUID, setId: UUID, weight: Double? = nil, reps: Int? = nil, isCompleted: Bool? = nil) {
         if let exerciseIndex = exercises.firstIndex(where: { $0.id == exerciseId }),
            let setIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == setId }) {
+            
+            // If user modifies weight or reps, remove prefilled state
+            if weight != nil || reps != nil {
+                exercises[exerciseIndex].sets[setIndex].isPrefilled = false
+            }
+            
             if let weight = weight {
                 exercises[exerciseIndex].sets[setIndex].weight = weight
             }

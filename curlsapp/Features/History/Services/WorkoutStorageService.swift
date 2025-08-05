@@ -101,4 +101,28 @@ class WorkoutStorageService: ObservableObject {
             workout.exercises.contains { $0.exerciseId == exerciseId }
         }
     }
+    
+    func getLastExerciseData(exerciseId: String) -> CompletedExercise? {
+        guard let workout = getLastWorkout(for: exerciseId) else { return nil }
+        return workout.exercises.first { $0.exerciseId == exerciseId }
+    }
+    
+    func getPrefillData(for exerciseId: String) -> WorkoutPrefillData? {
+        guard let lastExercise = getLastExerciseData(exerciseId: exerciseId),
+              let lastWorkout = getLastWorkout(for: exerciseId) else { return nil }
+        
+        let suggestedSets = lastExercise.sets.map { completedSet in
+            PrefillSet(
+                weight: completedSet.weight,
+                reps: completedSet.reps
+            )
+        }
+        
+        return WorkoutPrefillData(
+            exerciseId: exerciseId,
+            exerciseName: lastExercise.exerciseName,
+            suggestedSets: suggestedSets,
+            lastWorkoutDate: lastWorkout.endDate
+        )
+    }
 }

@@ -43,6 +43,17 @@ struct ExerciseCardView: View {
         }
     }
     
+    private func clearPrefillData() {
+        // Find the exercise in WorkoutManager and clear prefill data
+        if let exerciseIndex = workoutManager.exercises.firstIndex(where: { $0.id == workoutExercise.id }) {
+            for setIndex in workoutManager.exercises[exerciseIndex].sets.indices {
+                workoutManager.exercises[exerciseIndex].sets[setIndex].isPrefilled = false
+                workoutManager.exercises[exerciseIndex].sets[setIndex].weight = 0
+                workoutManager.exercises[exerciseIndex].sets[setIndex].reps = 0
+            }
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // Exercise title
@@ -206,8 +217,8 @@ struct SetRowView: View {
                         .foregroundColor(.secondary)
                         .frame(width: columnWidth * 0.1, alignment: .center)
                     
-                    // Previous weight - 0.4 width
-                    Text(set.previousWeight > 0 ? "\(Int(set.previousWeight))" : "-")
+                    // Previous weight x reps - 0.4 width
+                    Text(set.previousWeight > 0 && set.previousReps > 0 ? "\(Int(set.previousWeight)) × \(set.previousReps)" : "-")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.secondary)
                         .frame(width: columnWidth * 0.4, alignment: .center)
