@@ -119,23 +119,33 @@ struct CustomNumberPad: View {
     }
     
     private func appendNumber(_ digit: String) {
-        var newValue = focusManager.currentValue
+        var newValue: String
         
-        // Prevent multiple decimal points
-        if digit == "." && newValue.contains(".") {
-            return
-        }
-        
-        // Prevent leading zeros (except before decimal)
-        if digit == "0" && newValue == "0" {
-            return
-        }
-        
-        // Replace single zero with new digit
-        if newValue == "0" && digit != "." {
-            newValue = digit
+        // Check if we should reset on first digit
+        if focusManager.shouldResetOnNextDigit {
+            // First digit after opening - replace entirely
+            newValue = digit == "." ? "0." : digit
+            focusManager.setDigitEntered()
         } else {
-            newValue += digit
+            // Normal append behavior
+            newValue = focusManager.currentValue
+            
+            // Prevent multiple decimal points
+            if digit == "." && newValue.contains(".") {
+                return
+            }
+            
+            // Prevent leading zeros (except before decimal)
+            if digit == "0" && newValue == "0" {
+                return
+            }
+            
+            // Replace single zero with new digit
+            if newValue == "0" && digit != "." {
+                newValue = digit
+            } else {
+                newValue += digit
+            }
         }
         
         // Limit decimal places for weight
@@ -163,6 +173,9 @@ struct CustomNumberPad: View {
     }
     
     private func incrementValue() {
+        // +/- buttons should never trigger reset
+        focusManager.shouldResetOnNextDigit = false
+        
         if let currentNum = Double(focusManager.currentValue) {
             let increment: Double = focusManager.activeInput?.type == .weight ? 2.5 : 1
             let newValue = currentNum + increment
@@ -172,6 +185,9 @@ struct CustomNumberPad: View {
     }
     
     private func decrementValue() {
+        // +/- buttons should never trigger reset
+        focusManager.shouldResetOnNextDigit = false
+        
         if let currentNum = Double(focusManager.currentValue), currentNum > 0 {
             let decrement: Double = focusManager.activeInput?.type == .weight ? 2.5 : 1
             let newValue = max(0, currentNum - decrement)
