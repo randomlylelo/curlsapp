@@ -23,18 +23,21 @@ struct ExerciseCardView: View {
         
         // If current input is weight, move to reps in same set
         if currentInput.type == .weight {
+            let currentReps = sets[currentSetIndex].reps
+            let repsValue = currentReps > 0 ? "\(currentReps)" : "0"
             focusManager.activateInput(
                 InputIdentifier(exerciseId: currentInput.exerciseId, setId: currentInput.setId, type: .reps),
-                currentValue: ""
+                currentValue: repsValue
             )
         } else {
             // Current input is reps, try to move to next set's weight
             let nextSetIndex = currentSetIndex + 1
             if nextSetIndex < sets.count {
                 let nextSet = sets[nextSetIndex]
+                let weightValue = nextSet.weight > 0 ? "\(Int(nextSet.weight))" : "0"
                 focusManager.activateInput(
                     InputIdentifier(exerciseId: currentInput.exerciseId, setId: nextSet.id, type: .weight),
-                    currentValue: ""
+                    currentValue: weightValue
                 )
             } else {
                 // No more sets, dismiss keyboard
