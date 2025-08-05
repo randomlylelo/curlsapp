@@ -41,7 +41,19 @@ struct WorkoutView: View {
                 Spacer()
             }
             .padding(.top)
-            .navigationTitle("Workout")
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack {
+                        Text("Workout")
+                            .font(.title)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                    }
+                }
+            }
             .fullScreenCover(isPresented: $showingWorkoutSession) {
                 WorkoutSessionView(isPresented: $showingWorkoutSession)
             }

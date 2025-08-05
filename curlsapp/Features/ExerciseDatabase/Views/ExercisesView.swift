@@ -121,17 +121,28 @@ struct ExercisesView: View {
                     }
                 }
             }
-            .navigationTitle("Exercises")
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $viewModel.searchText, prompt: "Search exercises...")
             .refreshable {
                 await viewModel.refreshExercises()
             }
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showingAddExercise = true
-                    } label: {
-                        Image(systemName: "plus")
+                ToolbarItem(placement: .principal) {
+                    HStack {
+                        Text("Exercises")
+                            .font(.title)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                        
+                        Button {
+                            showingAddExercise = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.headline)
+                                .foregroundColor(.blue)
+                        }
                     }
                 }
             }

@@ -55,7 +55,19 @@ struct HistoryView: View {
                     .searchable(text: $historyViewModel.searchText, prompt: "Search workouts...")
                 }
             }
-            .navigationTitle("History")
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack {
+                        Text("History")
+                            .font(.title)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                    }
+                }
+            }
             .onAppear {
                 historyViewModel.loadWorkouts()
             }
