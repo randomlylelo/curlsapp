@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ExercisesView: View {
     @State private var viewModel = ExercisesViewModel()
+    @State private var showingAddExercise = false
     
     var body: some View {
         NavigationStack {
@@ -46,15 +47,29 @@ struct ExercisesView: View {
                                         NavigationLink(destination: ExerciseDetailView(exercise: exercise)) {
                                             HStack {
                                                 VStack(alignment: .leading, spacing: 8) {
-                                                    Text(exercise.name.capitalized)
-                                                        .font(.headline)
-                                                        .foregroundColor(.primary)
+                                                    HStack {
+                                                        Text(exercise.name.capitalized)
+                                                            .font(.headline)
+                                                            .foregroundColor(.primary)
+                                                        
+                                                        if exercise.isCustom {
+                                                            Text("CUSTOM")
+                                                                .font(.caption2)
+                                                                .fontWeight(.bold)
+                                                                .padding(.horizontal, 6)
+                                                                .padding(.vertical, 2)
+                                                                .background(Color.blue)
+                                                                .foregroundColor(.white)
+                                                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                                                        }
+                                                        
+                                                        Spacer()
+                                                    }
                                                     
                                                     Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
                                                         .font(.subheadline)
                                                         .foregroundColor(.secondary)
                                                 }
-                                                Spacer()
                                             }
                                             .padding(.vertical, 16)
                                             .padding(.horizontal, 16)
@@ -109,7 +124,24 @@ struct ExercisesView: View {
             .navigationTitle("Exercises")
             .searchable(text: $viewModel.searchText, prompt: "Search exercises...")
             .refreshable {
-                await viewModel.loadExercises()
+                await viewModel.refreshExercises()
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showingAddExercise = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingAddExercise) {
+                AddCustomExerciseView()
+                    .onDisappear {
+                        Task {
+                            await viewModel.refreshExercises()
+                        }
+                    }
             }
             .overlay {
                 if viewModel.isLoading {

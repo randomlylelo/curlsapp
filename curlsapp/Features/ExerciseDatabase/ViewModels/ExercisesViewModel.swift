@@ -43,9 +43,14 @@ class ExercisesViewModel {
     @MainActor
     func loadExercises() async {
         isLoading = true
-        exercises = await exerciseService.loadExercises()
+        exercises = await exerciseService.loadAllExercises()
         updateFilteredExercises()
         isLoading = false
+    }
+    
+    @MainActor
+    func refreshExercises() async {
+        await loadExercises()
     }
     
     private func updateFilteredExercises() {

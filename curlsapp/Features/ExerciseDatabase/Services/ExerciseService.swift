@@ -8,6 +8,7 @@
 import Foundation
 
 class ExerciseService {
+    private let customExercisesKey = "customExercises"
     
     func loadExercises() async -> [Exercise] {
         guard let url = Bundle.main.url(forResource: "exercises", withExtension: "json"),
@@ -22,6 +23,44 @@ class ExerciseService {
         } catch {
             print("Error decoding exercises: \(error)")
             return []
+        }
+    }
+    
+    func loadAllExercises() async -> [Exercise] {
+        let defaultExercises = await loadExercises()
+        let customExercises = loadCustomExercises()
+        return defaultExercises + customExercises
+    }
+    
+    func loadCustomExercises() -> [Exercise] {
+        guard let data = UserDefaults.standard.data(forKey: customExercisesKey),
+              let exercises = try? JSONDecoder().decode([Exercise].self, from: data) else {
+            return []
+        }
+        return exercises
+    }
+    
+    func saveCustomExercise(_ exercise: Exercise) {
+        var customExercises = loadCustomExercises()
+        customExercises.append(exercise)
+        
+        do {
+            let data = try JSONEncoder().encode(customExercises)
+            UserDefaults.standard.set(data, forKey: customExercisesKey)
+        } catch {
+            print("Error saving custom exercise: \(error)")
+        }
+    }
+    
+    func deleteCustomExercise(id: String) {
+        var customExercises = loadCustomExercises()
+        customExercises.removeAll { $0.id == id }
+        
+        do {
+            let data = try JSONEncoder().encode(customExercises)
+            UserDefaults.standard.set(data, forKey: customExercisesKey)
+        } catch {
+            print("Error deleting custom exercise: \(error)")
         }
     }
     
