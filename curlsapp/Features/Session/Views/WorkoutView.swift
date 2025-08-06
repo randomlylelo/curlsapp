@@ -31,23 +31,23 @@ struct WorkoutView: View {
                     .padding(.horizontal)
                     
                     // Templates Section
-                    if !templateStorage.templates.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Templates")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                    .padding(.horizontal)
-                                
-                                Spacer()
-                                
-                                Button("New", systemImage: "plus") {
-                                    showingCreateTemplate = true
-                                }
-                                .font(.subheadline)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Templates")
+                                .font(.title2)
+                                .fontWeight(.semibold)
                                 .padding(.horizontal)
-                            }
                             
+                            Spacer()
+                            
+                            Button("New", systemImage: "plus") {
+                                showingCreateTemplate = true
+                            }
+                            .font(.subheadline)
+                            .padding(.horizontal)
+                        }
+                        
+                        if !templateStorage.templates.isEmpty {
                             LazyVGrid(columns: [
                                 GridItem(.flexible(), spacing: 12),
                                 GridItem(.flexible(), spacing: 12)
@@ -83,17 +83,6 @@ struct WorkoutView: View {
                             }
                             .padding(.horizontal)
                         }
-                    } else {
-                        // Empty state - show create template card
-                        WorkoutCard(
-                            title: "Create Template",
-                            subtitle: "Save your favorite workouts",
-                            icon: "plus.circle.fill",
-                            color: .green
-                        ) {
-                            showingCreateTemplate = true
-                        }
-                        .padding(.horizontal)
                     }
                     
                     Spacer(minLength: 100)
