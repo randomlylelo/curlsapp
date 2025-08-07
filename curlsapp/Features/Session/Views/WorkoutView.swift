@@ -9,7 +9,8 @@ import SwiftUI
 
 struct WorkoutView: View {
     @State private var showingWorkoutSession = false
-    @State private var showingCreateTemplate = false
+    @State private var templateEditMode: TemplateEditMode?
+    @State private var showingTemplateEditor = false
     @State private var loadingTemplate = false
     @StateObject private var workoutManager = WorkoutManager.shared
     @StateObject private var templateStorage = TemplateStorageService.shared
@@ -41,7 +42,8 @@ struct WorkoutView: View {
                             Spacer()
                             
                             Button("New", systemImage: "plus") {
-                                showingCreateTemplate = true
+                                templateEditMode = .create
+                                showingTemplateEditor = true
                             }
                             .font(.subheadline)
                             .padding(.horizontal)
@@ -65,18 +67,15 @@ struct WorkoutView: View {
                                             }
                                         },
                                         onEdit: {
-                                            // TODO: Show edit template sheet
+                                            templateEditMode = .edit(template)
+                                            showingTemplateEditor = true
                                         },
                                         onDelete: {
                                             templateStorage.deleteTemplate(template)
                                         },
                                         onDuplicate: {
-                                            let duplicatedTemplate = WorkoutTemplate(
-                                                name: "\(template.name) Copy",
-                                                notes: template.notes,
-                                                exercises: template.exercises
-                                            )
-                                            templateStorage.addTemplate(duplicatedTemplate)
+                                            templateEditMode = .duplicate(template)
+                                            showingTemplateEditor = true
                                         }
                                     )
                                 }
@@ -105,8 +104,8 @@ struct WorkoutView: View {
             .fullScreenCover(isPresented: $showingWorkoutSession) {
                 WorkoutSessionView(isPresented: $showingWorkoutSession)
             }
-            .sheet(isPresented: $showingCreateTemplate) {
-                CreateTemplateView()
+            .sheet(isPresented: $showingTemplateEditor) {
+                TemplateEditorView(mode: templateEditMode ?? .create)
             }
             .overlay {
                 if loadingTemplate {

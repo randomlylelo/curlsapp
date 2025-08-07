@@ -1,5 +1,5 @@
 //
-//  CreateTemplateView.swift
+//  TemplateEditorView.swift
 //  curlsapp
 //
 //  Created by Leo on 8/5/25.
@@ -7,14 +7,42 @@
 
 import SwiftUI
 
-struct CreateTemplateView: View {
+enum TemplateEditMode {
+    case create
+    case edit(WorkoutTemplate)
+    case duplicate(WorkoutTemplate)
+    
+    var navigationTitle: String {
+        switch self {
+        case .create:
+            return "New Template"
+        case .edit:
+            return "Edit Template"
+        case .duplicate:
+            return "Duplicate Template"
+        }
+    }
+    
+    var saveButtonTitle: String {
+        switch self {
+        case .create, .duplicate:
+            return "Save Template"
+        case .edit:
+            return "Update Template"
+        }
+    }
+}
+
+struct TemplateEditorView: View {
+    let mode: TemplateEditMode
     @Environment(\.dismiss) private var dismiss
     @StateObject private var templateStorage = TemplateStorageService.shared
     
-    @State private var templateName = "New Template"
-    @State private var templateNotes = ""
-    @State private var selectedExercises: [Exercise] = []
-    @State private var templateExercises: [TemplateExercise] = []
+    @State private var templateName: String
+    @State private var templateNotes: String
+    @State private var selectedExercises: [Exercise]
+    @State private var templateExercises: [TemplateExercise]
+    @State private var templateId: UUID?
     @State private var isEditingTitle = false
     @State private var showingExerciseSelection = false
     
@@ -24,8 +52,42 @@ struct CreateTemplateView: View {
     @State private var dropTargetIndex: Int? = nil
     @State private var dragOffset: CGSize = .zero
     
+    init(mode: TemplateEditMode = .create) {
+        self.mode = mode
+        
+        switch mode {
+        case .create:
+            _templateName = State(initialValue: "New Template")
+            _templateNotes = State(initialValue: "")
+            _selectedExercises = State(initialValue: [])
+            _templateExercises = State(initialValue: [])
+            _templateId = State(initialValue: nil)
+            
+        case .edit(let template):
+            _templateName = State(initialValue: template.name)
+            _templateNotes = State(initialValue: template.notes)
+            _selectedExercises = State(initialValue: [])
+            _templateExercises = State(initialValue: template.exercises)
+            _templateId = State(initialValue: template.id)
+            
+        case .duplicate(let template):
+            _templateName = State(initialValue: "\(template.name) Copy")
+            _templateNotes = State(initialValue: template.notes)
+            _selectedExercises = State(initialValue: [])
+            _templateExercises = State(initialValue: template.exercises)
+            _templateId = State(initialValue: nil)
+        }
+    }
+    
     private func getDefaultTemplateName() -> String {
-        "New Template"
+        switch mode {
+        case .create:
+            return "New Template"
+        case .edit(let template):
+            return template.name
+        case .duplicate:
+            return "New Template Copy"
+        }
     }
     
     private func calculateDropTarget(dragY: CGFloat) -> Int? {
@@ -147,8 +209,12 @@ struct CreateTemplateView: View {
                     if !templateExercises.isEmpty {
                         VStack(spacing: isReorderingMode ? 4 : 8) {
                             ForEach(templateExercises.indices, id: \.self) { index in
-                                let templateExercise = templateExercises[index]
-                                let exercise = selectedExercises[index]
+                                let exercise = index < selectedExercises.count ? selectedExercises[index] : Exercise(
+                                    id: templateExercises[index].exerciseId,
+                                    name: templateExercises[index].exerciseName,
+                                    level: "beginner",
+                                    category: "strength"
+                                )
                                 
                                 VStack {
                                     if isReorderingMode {
@@ -267,7 +333,7 @@ struct CreateTemplateView: View {
                     Button(action: {
                         saveTemplate()
                     }) {
-                        Text("Save Template")
+                        Text(mode.saveButtonTitle)
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -283,12 +349,16 @@ struct CreateTemplateView: View {
             }
             .scrollDisabled(isReorderingMode)
             .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(mode.navigationTitle)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
                     }
                 }
+            }
+            .onAppear {
+                loadExercisesIfNeeded()
             }
         }
         .sheet(isPresented: $showingExerciseSelection) {
@@ -311,18 +381,61 @@ struct CreateTemplateView: View {
     }
     
     private func saveTemplate() {
-        let template = WorkoutTemplate(
-            name: templateName.isEmpty ? getDefaultTemplateName() : templateName,
-            notes: templateNotes,
-            exercises: templateExercises
-        )
+        switch mode {
+        case .create, .duplicate:
+            let template = WorkoutTemplate(
+                name: templateName.isEmpty ? getDefaultTemplateName() : templateName,
+                notes: templateNotes,
+                exercises: templateExercises
+            )
+            templateStorage.addTemplate(template)
+            
+        case .edit(let originalTemplate):
+            let template = WorkoutTemplate(
+                id: originalTemplate.id,
+                name: templateName.isEmpty ? getDefaultTemplateName() : templateName,
+                notes: templateNotes,
+                createdDate: originalTemplate.createdDate,
+                lastUsedDate: originalTemplate.lastUsedDate,
+                exercises: templateExercises,
+                isDefault: originalTemplate.isDefault
+            )
+            templateStorage.updateTemplate(template)
+        }
         
-        templateStorage.addTemplate(template)
         dismiss()
+    }
+    
+    private func loadExercisesIfNeeded() {
+        guard selectedExercises.isEmpty && !templateExercises.isEmpty else { return }
+        
+        // Load Exercise objects for existing template exercises
+        let exerciseService = ExerciseService()
+        Task {
+            let exercises = await exerciseService.loadAllExercises()
+            await MainActor.run {
+                var loadedExercises: [Exercise] = []
+                for templateExercise in templateExercises {
+                    if let exercise = exercises.first(where: { $0.id == templateExercise.exerciseId }) {
+                        loadedExercises.append(exercise)
+                    } else {
+                        // Create a placeholder exercise if not found
+                        let placeholderExercise = Exercise(
+                            id: templateExercise.exerciseId,
+                            name: templateExercise.exerciseName,
+                            level: "beginner",
+                            category: "strength"
+                        )
+                        loadedExercises.append(placeholderExercise)
+                    }
+                }
+                selectedExercises = loadedExercises
+            }
+        }
     }
 }
 
 
 #Preview {
-    CreateTemplateView()
+    TemplateEditorView(mode: .create)
 }
