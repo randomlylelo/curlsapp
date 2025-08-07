@@ -292,22 +292,21 @@ struct CreateTemplateView: View {
             }
         }
         .sheet(isPresented: $showingExerciseSelection) {
-            TemplateExerciseSelectionView(
-                selectedExercises: $selectedExercises,
-                onExerciseAdded: { exercise in
-                    let templateExercise = TemplateExercise(
-                        exerciseId: exercise.id,
-                        exerciseName: exercise.name,
-                        sets: [
-                            TemplateSet(weight: 0, reps: 8),
-                            TemplateSet(weight: 0, reps: 8),
-                            TemplateSet(weight: 0, reps: 8)
-                        ]
-                    )
-                    selectedExercises.append(exercise)
-                    templateExercises.append(templateExercise)
-                }
-            )
+            ExerciseSelectionView(
+                excludedExerciseIds: Set(selectedExercises.map { $0.id })
+            ) { exercise in
+                let templateExercise = TemplateExercise(
+                    exerciseId: exercise.id,
+                    exerciseName: exercise.name,
+                    sets: [
+                        TemplateSet(weight: 0, reps: 8),
+                        TemplateSet(weight: 0, reps: 8),
+                        TemplateSet(weight: 0, reps: 8)
+                    ]
+                )
+                selectedExercises.append(exercise)
+                templateExercises.append(templateExercise)
+            }
         }
     }
     
@@ -323,57 +322,6 @@ struct CreateTemplateView: View {
     }
 }
 
-struct TemplateExerciseSelectionView: View {
-    @Binding var selectedExercises: [Exercise]
-    let onExerciseAdded: (Exercise) -> Void
-    @State private var exercisesViewModel = ExercisesViewModel()
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationStack {
-            List {
-                ForEach(exercisesViewModel.filteredExercises) { exercise in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(exercise.name)
-                                .font(.headline)
-                            Text(exercise.primaryMuscles.joined(separator: ", "))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        Spacer()
-                        
-                        if selectedExercises.contains(where: { $0.id == exercise.id }) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.blue)
-                        } else {
-                            Image(systemName: "plus.circle")
-                                .foregroundColor(.gray)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if !selectedExercises.contains(where: { $0.id == exercise.id }) {
-                            onExerciseAdded(exercise)
-                            dismiss()
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Add Exercise")
-            .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $exercisesViewModel.searchText)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
-}
 
 #Preview {
     CreateTemplateView()
