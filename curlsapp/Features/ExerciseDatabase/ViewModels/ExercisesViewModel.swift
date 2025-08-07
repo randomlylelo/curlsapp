@@ -130,4 +130,10 @@ class ExercisesViewModel {
     func exercisesByMuscleGroup(_ muscle: String) -> [Exercise] {
         exerciseService.exercisesByMuscleGroup(exercises, muscle: muscle)
     }
+    
+    @MainActor
+    func deleteCustomExercise(id: String) async {
+        exerciseService.deleteCustomExercise(id: id)
+        await refreshExercises()
+    }
 }

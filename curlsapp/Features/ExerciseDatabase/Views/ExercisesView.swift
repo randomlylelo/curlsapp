@@ -43,16 +43,17 @@ struct ExercisesView: View {
                         List {
                             ForEach(viewModel.alphabetSections, id: \.self) { section in
                                 Section {
-                                    ForEach(viewModel.sectionedExercises[section] ?? []) { exercise in
-                                        NavigationLink(destination: ExerciseDetailView(exercise: exercise)) {
-                                            HStack {
-                                                VStack(alignment: .leading, spacing: 8) {
-                                                    HStack {
-                                                        Text(exercise.name.capitalized)
-                                                            .font(.headline)
-                                                            .foregroundColor(.primary)
-                                                        
-                                                        if exercise.isCustom {
+                                    if section == "★" {
+                                        // Custom exercises with delete functionality
+                                        ForEach(viewModel.sectionedExercises[section] ?? []) { exercise in
+                                            NavigationLink(destination: ExerciseDetailView(exercise: exercise)) {
+                                                HStack {
+                                                    VStack(alignment: .leading, spacing: 8) {
+                                                        HStack {
+                                                            Text(exercise.name.capitalized)
+                                                                .font(.headline)
+                                                                .foregroundColor(.primary)
+                                                            
                                                             Text("CUSTOM")
                                                                 .font(.caption2)
                                                                 .fontWeight(.bold)
@@ -61,30 +62,75 @@ struct ExercisesView: View {
                                                                 .background(Color.blue)
                                                                 .foregroundColor(.white)
                                                                 .clipShape(RoundedRectangle(cornerRadius: 4))
+                                                            
+                                                            Spacer()
                                                         }
                                                         
-                                                        Spacer()
+                                                        Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
+                                                            .font(.subheadline)
+                                                            .foregroundColor(.secondary)
                                                     }
-                                                    
-                                                    Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
-                                                        .font(.subheadline)
-                                                        .foregroundColor(.secondary)
+                                                }
+                                                .padding(.vertical, 16)
+                                                .padding(.horizontal, 16)
+                                                .background(Color.clear)
+                                                .overlay(
+                                                    Rectangle()
+                                                        .frame(height: 0.5)
+                                                        .foregroundColor(Color(.separator))
+                                                        .opacity(0.6),
+                                                    alignment: .bottom
+                                                )
+                                            }
+                                            .listRowBackground(Color.clear)
+                                            .listRowSeparator(.hidden)
+                                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
+                                        }
+                                        .onDelete { indexSet in
+                                            let exercisesToDelete = indexSet.compactMap { index in
+                                                viewModel.sectionedExercises[section]?[index]
+                                            }
+                                            
+                                            Task {
+                                                for exercise in exercisesToDelete {
+                                                    await viewModel.deleteCustomExercise(id: exercise.id)
                                                 }
                                             }
-                                            .padding(.vertical, 16)
-                                            .padding(.horizontal, 16)
-                                            .background(Color.clear)
-                                            .overlay(
-                                                Rectangle()
-                                                    .frame(height: 0.5)
-                                                    .foregroundColor(Color(.separator))
-                                                    .opacity(0.6),
-                                                alignment: .bottom
-                                            )
                                         }
-                                        .listRowBackground(Color.clear)
-                                        .listRowSeparator(.hidden)
-                                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
+                                    } else {
+                                        // Regular exercises without delete functionality
+                                        ForEach(viewModel.sectionedExercises[section] ?? []) { exercise in
+                                            NavigationLink(destination: ExerciseDetailView(exercise: exercise)) {
+                                                HStack {
+                                                    VStack(alignment: .leading, spacing: 8) {
+                                                        HStack {
+                                                            Text(exercise.name.capitalized)
+                                                                .font(.headline)
+                                                                .foregroundColor(.primary)
+                                                            
+                                                            Spacer()
+                                                        }
+                                                        
+                                                        Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
+                                                            .font(.subheadline)
+                                                            .foregroundColor(.secondary)
+                                                    }
+                                                }
+                                                .padding(.vertical, 16)
+                                                .padding(.horizontal, 16)
+                                                .background(Color.clear)
+                                                .overlay(
+                                                    Rectangle()
+                                                        .frame(height: 0.5)
+                                                        .foregroundColor(Color(.separator))
+                                                        .opacity(0.6),
+                                                    alignment: .bottom
+                                                )
+                                            }
+                                            .listRowBackground(Color.clear)
+                                            .listRowSeparator(.hidden)
+                                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
+                                        }
                                     }
                                 } header: {
                                     HStack {
