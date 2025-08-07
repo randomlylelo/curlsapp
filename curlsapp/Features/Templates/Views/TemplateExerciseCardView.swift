@@ -13,8 +13,6 @@ struct TemplateExerciseCardView: View {
     let onRemove: () -> Void
     
     @State private var isExpanded = true
-    @State private var weightTexts: [String] = []
-    @State private var repsTexts: [String] = []
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -49,169 +47,109 @@ struct TemplateExerciseCardView: View {
                 // Sets grid
                 VStack(spacing: 4) {
                     // Header
-                    HStack {
-                        Text("Set")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .frame(minWidth: 30)
-                        
-                        Text("Weight")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity)
-                        
-                        Text("Reps")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity)
-                        
-                        Text("")
-                            .frame(width: 30)
-                    }
-                    .frame(height: 20)
-                    
-                    // Sets
-                    ForEach(0..<templateSets.count, id: \.self) { index in
-                        HStack {
-                            Text("\(index + 1)")
+                    GeometryReader { geometry in
+                        HStack(spacing: 0) {
+                            Text("Set")
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(.secondary)
-                                .frame(minWidth: 30)
+                                .frame(width: geometry.size.width * 0.15, alignment: .center)
                             
-                            TextField("Weight", text: binding(for: index, type: .weight))
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.center)
-                                .font(.system(size: 16))
-                                .frame(maxWidth: .infinity)
-                                .padding(8)
-                                .background(Color(.systemGray6))
-                                .cornerRadius(6)
+                            Text("Weight")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .frame(width: geometry.size.width * 0.35, alignment: .center)
                             
-                            TextField("Reps", text: binding(for: index, type: .reps))
-                                .keyboardType(.numberPad)
-                                .multilineTextAlignment(.center)
-                                .font(.system(size: 16))
-                                .frame(maxWidth: .infinity)
-                                .padding(8)
-                                .background(Color(.systemGray6))
-                                .cornerRadius(6)
+                            Text("Reps")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .frame(width: geometry.size.width * 0.35, alignment: .center)
                             
-                            Button {
-                                removeSet(at: index)
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .foregroundColor(.red)
+                            // Space for delete button
+                            Spacer()
+                                .frame(width: geometry.size.width * 0.15)
+                        }
+                    }
+                    .frame(height: 20)
+                    .padding(.bottom, 0)
+                    
+                    // Sets rows with placeholder content
+                    ForEach(0..<templateSets.count, id: \.self) { index in
+                        GeometryReader { geometry in
+                            HStack(spacing: 0) {
+                                // Set number
+                                Text("\(index + 1)")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.secondary)
+                                    .frame(width: geometry.size.width * 0.15, alignment: .center)
+                                
+                                // Weight placeholder
+                                Text("—")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.secondary)
+                                    .frame(width: geometry.size.width * 0.35, alignment: .center)
+                                    .padding(.horizontal, 4)
+                                
+                                // Reps placeholder
+                                Text("—")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.secondary)
+                                    .frame(width: geometry.size.width * 0.35, alignment: .center)
+                                    .padding(.horizontal, 4)
+                                
+                                // Empty space for consistency
+                                Spacer()
+                                    .frame(width: geometry.size.width * 0.15)
                             }
-                            .frame(width: 30)
                         }
                         .frame(height: 40)
                     }
                 }
                 
+                // Remove set button
+                if templateSets.count > 1 {
+                    Button {
+                        let _ = withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            templateSets.removeLast()
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "minus.circle")
+                                .font(.system(size: 16))
+                            Text("Remove Set")
+                                .font(.system(size: 16, weight: .medium))
+                        }
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(Color.red.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .padding(.top, 4)
+                }
+                
                 // Add set button
                 Button {
-                    addSet()
+                    let _ = withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        templateSets.append(TemplateSet(weight: 0, reps: 0))
+                    }
                 } label: {
                     HStack {
                         Image(systemName: "plus.circle")
+                            .font(.system(size: 16))
                         Text("Add Set")
+                            .font(.system(size: 16, weight: .medium))
                     }
+                    .foregroundColor(.primary)
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(.vertical, 8)
                     .background(Color(.systemGray5))
-                    .cornerRadius(8)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
+                .padding(.top, templateSets.count > 1 ? 4 : 0)
             }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        .onAppear {
-            initializeTextArrays()
-        }
-        .onChange(of: templateSets) { _, _ in
-            initializeTextArrays()
-        }
-    }
-    
-    private enum InputType {
-        case weight, reps
-    }
-    
-    private func binding(for index: Int, type: InputType) -> Binding<String> {
-        switch type {
-        case .weight:
-            return Binding(
-                get: {
-                    guard index < weightTexts.count else { return "" }
-                    return weightTexts[index]
-                },
-                set: { newValue in
-                    updateWeightText(at: index, with: newValue)
-                }
-            )
-        case .reps:
-            return Binding(
-                get: {
-                    guard index < repsTexts.count else { return "" }
-                    return repsTexts[index]
-                },
-                set: { newValue in
-                    updateRepsText(at: index, with: newValue)
-                }
-            )
-        }
-    }
-    
-    private func initializeTextArrays() {
-        weightTexts = templateSets.map { set in
-            set.weight > 0 ? (set.weight.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(set.weight))" : "\(set.weight)") : ""
-        }
-        repsTexts = templateSets.map { set in
-            set.reps > 0 ? "\(set.reps)" : ""
-        }
-    }
-    
-    private func updateWeightText(at index: Int, with newValue: String) {
-        guard index < weightTexts.count && index < templateSets.count else { return }
-        
-        // Allow decimals for weight
-        let filtered = newValue.filter { $0.isNumber || $0 == "." }
-        weightTexts[index] = filtered
-        
-        if let weight = Double(filtered.isEmpty ? "0" : filtered) {
-            templateSets[index] = TemplateSet(id: templateSets[index].id, weight: weight, reps: templateSets[index].reps)
-        }
-    }
-    
-    private func updateRepsText(at index: Int, with newValue: String) {
-        guard index < repsTexts.count && index < templateSets.count else { return }
-        
-        // Only allow integers for reps
-        let filtered = newValue.filter { $0.isNumber }
-        repsTexts[index] = filtered
-        
-        if let reps = Int(filtered.isEmpty ? "0" : filtered) {
-            templateSets[index] = TemplateSet(id: templateSets[index].id, weight: templateSets[index].weight, reps: reps)
-        }
-    }
-    
-    private func addSet() {
-        templateSets.append(TemplateSet(weight: 0, reps: 8))
-        weightTexts.append("")
-        repsTexts.append("8")
-    }
-    
-    private func removeSet(at index: Int) {
-        guard index < templateSets.count else { return }
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            templateSets.remove(at: index)
-            if index < weightTexts.count {
-                weightTexts.remove(at: index)
-            }
-            if index < repsTexts.count {
-                repsTexts.remove(at: index)
-            }
-        }
     }
 }
 
@@ -223,9 +161,9 @@ struct TemplateExerciseCardView_Previews: PreviewProvider {
 
 struct TemplateExerciseCardViewPreview: View {
     @State private var templateSets = [
-        TemplateSet(weight: 135, reps: 8),
-        TemplateSet(weight: 135, reps: 8),
-        TemplateSet(weight: 135, reps: 6)
+        TemplateSet(weight: 0, reps: 0),
+        TemplateSet(weight: 0, reps: 0),
+        TemplateSet(weight: 0, reps: 0)
     ]
     
     var body: some View {
