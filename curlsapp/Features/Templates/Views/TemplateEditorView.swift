@@ -369,9 +369,9 @@ struct TemplateEditorView: View {
                     exerciseId: exercise.id,
                     exerciseName: exercise.name,
                     sets: [
-                        TemplateSet(weight: 0, reps: 8),
-                        TemplateSet(weight: 0, reps: 8),
-                        TemplateSet(weight: 0, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 )
                 selectedExercises.append(exercise)

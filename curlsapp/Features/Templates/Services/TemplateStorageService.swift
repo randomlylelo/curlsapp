@@ -86,36 +86,36 @@ class TemplateStorageService: ObservableObject {
                     exerciseId: "Dumbbell_Bench_Press",
                     exerciseName: "Dumbbell Bench Press",
                     sets: [
-                        TemplateSet(weight: 50, reps: 8),
-                        TemplateSet(weight: 50, reps: 8),
-                        TemplateSet(weight: 50, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Seated_Dumbbell_Press",
                     exerciseName: "Seated Dumbbell Press",
                     sets: [
-                        TemplateSet(weight: 30, reps: 8),
-                        TemplateSet(weight: 30, reps: 8),
-                        TemplateSet(weight: 30, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Close-Grip_Barbell_Bench_Press",
                     exerciseName: "Close-Grip Barbell Bench Press",
                     sets: [
-                        TemplateSet(weight: 95, reps: 8),
-                        TemplateSet(weight: 95, reps: 8),
-                        TemplateSet(weight: 95, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Dumbbell_Flyes",
                     exerciseName: "Dumbbell Flyes",
                     sets: [
-                        TemplateSet(weight: 25, reps: 10),
-                        TemplateSet(weight: 25, reps: 10),
-                        TemplateSet(weight: 25, reps: 10)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 )
             ],
@@ -130,36 +130,36 @@ class TemplateStorageService: ObservableObject {
                     exerciseId: "Pullups",
                     exerciseName: "Pullups",
                     sets: [
-                        TemplateSet(weight: 0, reps: 8),
-                        TemplateSet(weight: 0, reps: 8),
-                        TemplateSet(weight: 0, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Bent_Over_Barbell_Row",
                     exerciseName: "Bent Over Barbell Row",
                     sets: [
-                        TemplateSet(weight: 135, reps: 8),
-                        TemplateSet(weight: 135, reps: 8),
-                        TemplateSet(weight: 135, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Barbell_Curl",
                     exerciseName: "Barbell Curl",
                     sets: [
-                        TemplateSet(weight: 65, reps: 10),
-                        TemplateSet(weight: 65, reps: 10),
-                        TemplateSet(weight: 65, reps: 10)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Hammer_Curls",
                     exerciseName: "Hammer Curls",
                     sets: [
-                        TemplateSet(weight: 35, reps: 10),
-                        TemplateSet(weight: 35, reps: 10),
-                        TemplateSet(weight: 35, reps: 10)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 )
             ],
@@ -174,36 +174,36 @@ class TemplateStorageService: ObservableObject {
                     exerciseId: "Barbell_Squat",
                     exerciseName: "Barbell Squat",
                     sets: [
-                        TemplateSet(weight: 185, reps: 8),
-                        TemplateSet(weight: 185, reps: 8),
-                        TemplateSet(weight: 185, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Stiff-Legged_Dumbbell_Deadlift",
                     exerciseName: "Stiff-Legged Dumbbell Deadlift",
                     sets: [
-                        TemplateSet(weight: 60, reps: 8),
-                        TemplateSet(weight: 60, reps: 8),
-                        TemplateSet(weight: 60, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Barbell_Walking_Lunge",
                     exerciseName: "Barbell Walking Lunge",
                     sets: [
-                        TemplateSet(weight: 95, reps: 10),
-                        TemplateSet(weight: 95, reps: 10),
-                        TemplateSet(weight: 95, reps: 10)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Standing_Barbell_Calf_Raise",
                     exerciseName: "Standing Barbell Calf Raise",
                     sets: [
-                        TemplateSet(weight: 185, reps: 12),
-                        TemplateSet(weight: 185, reps: 12),
-                        TemplateSet(weight: 185, reps: 12)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 )
             ],
@@ -317,36 +317,36 @@ class TemplateStorageService: ObservableObject {
                     exerciseId: "Pullups",
                     exerciseName: "Pullups",
                     sets: [
-                        TemplateSet(weight: 0, reps: 8),
-                        TemplateSet(weight: 0, reps: 8),
-                        TemplateSet(weight: 0, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Bent_Over_Barbell_Row",
                     exerciseName: "Bent Over Barbell Row",
                     sets: [
-                        TemplateSet(weight: 135, reps: 8),
-                        TemplateSet(weight: 135, reps: 8),
-                        TemplateSet(weight: 135, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Barbell_Curl",
                     exerciseName: "Barbell Curl",
                     sets: [
-                        TemplateSet(weight: 65, reps: 10),
-                        TemplateSet(weight: 65, reps: 10),
-                        TemplateSet(weight: 65, reps: 10)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Hammer_Curls",
                     exerciseName: "Hammer Curls",
                     sets: [
-                        TemplateSet(weight: 35, reps: 10),
-                        TemplateSet(weight: 35, reps: 10),
-                        TemplateSet(weight: 35, reps: 10)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 )
             ],
@@ -361,36 +361,36 @@ class TemplateStorageService: ObservableObject {
                     exerciseId: "Barbell_Squat",
                     exerciseName: "Barbell Squat",
                     sets: [
-                        TemplateSet(weight: 185, reps: 8),
-                        TemplateSet(weight: 185, reps: 8),
-                        TemplateSet(weight: 185, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Stiff-Legged_Dumbbell_Deadlift",
                     exerciseName: "Stiff-Legged Dumbbell Deadlift",
                     sets: [
-                        TemplateSet(weight: 60, reps: 8),
-                        TemplateSet(weight: 60, reps: 8),
-                        TemplateSet(weight: 60, reps: 8)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Barbell_Walking_Lunge",
                     exerciseName: "Barbell Walking Lunge",
                     sets: [
-                        TemplateSet(weight: 95, reps: 10),
-                        TemplateSet(weight: 95, reps: 10),
-                        TemplateSet(weight: 95, reps: 10)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Standing_Barbell_Calf_Raise",
                     exerciseName: "Standing Barbell Calf Raise",
                     sets: [
-                        TemplateSet(weight: 185, reps: 12),
-                        TemplateSet(weight: 185, reps: 12),
-                        TemplateSet(weight: 185, reps: 12)
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0),
+                        TemplateSet(weight: 0, reps: 0)
                     ]
                 )
             ],
