@@ -69,7 +69,7 @@ struct TemplateExercise: Identifiable, Codable {
     }
 }
 
-struct TemplateSet: Identifiable, Codable {
+struct TemplateSet: Identifiable, Codable, Equatable {
     let id: UUID
     let weight: Double
     let reps: Int

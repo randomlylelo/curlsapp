@@ -18,7 +18,7 @@ struct SaveTemplateModal: View {
         self.completedWorkout = completedWorkout
         self.onSave = onSave
         self.onSkip = onSkip
-        self._templateName = State(initialValue: "\(completedWorkout.title) Template")
+        self._templateName = State(initialValue: "\(completedWorkout.title)")
     }
     
     var body: some View {
