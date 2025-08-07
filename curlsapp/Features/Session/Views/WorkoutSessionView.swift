@@ -329,7 +329,8 @@ struct WorkoutSessionView: View {
             if let completedWorkout = completedWorkoutForTemplate {
                 SaveTemplateModal(
                     completedWorkout: completedWorkout,
-                    onSave: { templateName in
+                    templateId: workoutManager.sourceTemplateId,
+                    onSave: { templateName, templateId in
                         Task {
                             // Save the workout first
                             do {
@@ -338,13 +339,13 @@ struct WorkoutSessionView: View {
                                 print("Failed to save workout: \(error)")
                             }
                             
-                            // Create and save the template
-                            let template = TemplateStorageService.shared.createTemplateFromWorkout(
+                            // Create or update the template
+                            TemplateStorageService.shared.saveTemplateFromWorkout(
                                 completedWorkout,
                                 name: templateName,
+                                templateId: templateId,
                                 notes: ""
                             )
-                            TemplateStorageService.shared.addTemplate(template)
                             
                             // End workout and dismiss
                             workoutManager.endWorkout()

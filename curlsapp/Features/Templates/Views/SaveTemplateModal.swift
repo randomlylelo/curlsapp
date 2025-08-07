@@ -9,16 +9,31 @@ import SwiftUI
 
 struct SaveTemplateModal: View {
     let completedWorkout: CompletedWorkout
-    let onSave: (String) -> Void
+    let templateId: UUID?
+    let onSave: (String, UUID?) -> Void
     let onSkip: () -> Void
     
     @State private var templateName: String = ""
+    @ObservedObject private var templateStorage = TemplateStorageService.shared
     
-    init(completedWorkout: CompletedWorkout, onSave: @escaping (String) -> Void, onSkip: @escaping () -> Void) {
+    var existingTemplate: WorkoutTemplate? {
+        guard let templateId = templateId else { return nil }
+        return templateStorage.templates.first { $0.id == templateId }
+    }
+    
+    init(completedWorkout: CompletedWorkout, templateId: UUID? = nil, onSave: @escaping (String, UUID?) -> Void, onSkip: @escaping () -> Void) {
         self.completedWorkout = completedWorkout
+        self.templateId = templateId
         self.onSave = onSave
         self.onSkip = onSkip
-        self._templateName = State(initialValue: "\(completedWorkout.title)")
+        
+        // Use existing template name if updating, otherwise use workout title
+        if let templateId = templateId,
+           let existingTemplate = TemplateStorageService.shared.templates.first(where: { $0.id == templateId }) {
+            self._templateName = State(initialValue: existingTemplate.name)
+        } else {
+            self._templateName = State(initialValue: "\(completedWorkout.title)")
+        }
     }
     
     var body: some View {
@@ -93,27 +108,74 @@ struct SaveTemplateModal: View {
                     // Template save section
                     VStack(spacing: 16) {
                         VStack(spacing: 8) {
-                            Text("Save as Template?")
+                            Text(existingTemplate != nil ? "Update Template?" : "Save as Template?")
                                 .font(.headline)
                             
-                            Text("Save this workout as a template to easily repeat it later.")
+                            Text(existingTemplate != nil ? 
+                                "Update your existing template with these new weights and reps." :
+                                "Save this workout as a template to easily repeat it later.")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                         }
                         
+                        // Template name input
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Template Name")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.secondary)
+                            
+                            TextField("Enter template name", text: $templateName)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.body)
+                        }
+                        
+                        // Show comparison if updating existing template
+                        if let existing = existingTemplate {
+                            VStack(spacing: 12) {
+                                HStack {
+                                    Image(systemName: "arrow.up.arrow.down")
+                                        .foregroundColor(.orange)
+                                    Text("Changes to \(existing.name)")
+                                        .font(.subheadline.weight(.medium))
+                                }
+                                
+                                VStack(spacing: 8) {
+                                    ForEach(completedWorkout.exercises.prefix(3)) { completedExercise in
+                                        if let existingExercise = existing.exercises.first(where: { $0.exerciseId == completedExercise.exerciseId }) {
+                                            ComparisonRow(
+                                                exerciseName: completedExercise.exerciseName,
+                                                oldSets: existingExercise.sets,
+                                                newSets: completedExercise.sets
+                                            )
+                                        }
+                                    }
+                                    
+                                    if completedWorkout.exercises.count > 3 {
+                                        Text("• +\(completedWorkout.exercises.count - 3) more exercises")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
+                            .padding()
+                            .background(Color(.systemOrange).opacity(0.1))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        
                         VStack(spacing: 12) {
                             Button(action: {
-                                onSave(templateName)
+                                onSave(templateName, templateId)
                             }) {
-                                Text("Save as Template")
+                                Text(existingTemplate != nil ? "Update Template" : "Save as Template")
                                     .font(.headline)
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding()
-                                    .background(Color.blue)
+                                    .background(templateName.isEmpty ? Color.gray : Color.blue)
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                             }
+                            .disabled(templateName.isEmpty)
                             
                             Button(action: {
                                 onSkip()
@@ -164,6 +226,64 @@ struct StatView: View {
     }
 }
 
+struct ComparisonRow: View {
+    let exerciseName: String
+    let oldSets: [TemplateSet]
+    let newSets: [CompletedSet]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(exerciseName)
+                .font(.caption.weight(.medium))
+                .foregroundColor(.primary)
+            
+            HStack {
+                // Old sets
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Current")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
+                    HStack(spacing: 4) {
+                        ForEach(Array(oldSets.enumerated()), id: \.offset) { index, set in
+                            Text("\(Int(set.weight))×\(set.reps)")
+                                .font(.caption2)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 2)
+                                .background(Color(.systemGray5))
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                        }
+                    }
+                }
+                
+                Image(systemName: "arrow.right")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                
+                // New sets
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("New")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
+                    HStack(spacing: 4) {
+                        ForEach(Array(newSets.enumerated()), id: \.offset) { index, set in
+                            Text("\(Int(set.weight))×\(set.reps)")
+                                .font(.caption2)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 2)
+                                .background(Color.orange.opacity(0.2))
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                        }
+                    }
+                }
+                
+                Spacer()
+            }
+        }
+    }
+}
+
 #Preview {
     let sampleWorkout = CompletedWorkout(
         title: "Push Day",
@@ -194,7 +314,7 @@ struct StatView: View {
     
     SaveTemplateModal(
         completedWorkout: sampleWorkout,
-        onSave: { _ in },
+        onSave: { _, _ in },
         onSkip: { }
     )
 }

@@ -254,6 +254,36 @@ class TemplateStorageService: ObservableObject {
         )
     }
     
+    func saveTemplateFromWorkout(_ workout: CompletedWorkout, name: String, templateId: UUID? = nil, notes: String = "") {
+        if let templateId = templateId,
+           let existingTemplate = templates.first(where: { $0.id == templateId }) {
+            // Update existing template
+            let updatedTemplate = WorkoutTemplate(
+                id: existingTemplate.id,
+                name: name,
+                notes: notes.isEmpty ? existingTemplate.notes : notes,
+                createdDate: existingTemplate.createdDate,
+                lastUsedDate: Date(),
+                exercises: workout.exercises.map { completedExercise in
+                    let templateSets = completedExercise.sets.map { completedSet in
+                        TemplateSet(weight: completedSet.weight, reps: completedSet.reps)
+                    }
+                    return TemplateExercise(
+                        exerciseId: completedExercise.exerciseId,
+                        exerciseName: completedExercise.exerciseName,
+                        sets: templateSets
+                    )
+                },
+                isDefault: existingTemplate.isDefault
+            )
+            updateTemplate(updatedTemplate)
+        } else {
+            // Create new template
+            let newTemplate = createTemplateFromWorkout(workout, name: name, notes: notes)
+            addTemplate(newTemplate)
+        }
+    }
+    
     func createTemplateFromCurrentWorkout(_ workoutManager: WorkoutManager, name: String, notes: String = "") -> WorkoutTemplate? {
         guard let completedWorkout = workoutManager.createCompletedWorkout() else { return nil }
         return createTemplateFromWorkout(completedWorkout, name: name, notes: notes)

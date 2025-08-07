@@ -73,6 +73,7 @@ class WorkoutManager: ObservableObject {
     @Published var workoutTitle: String = ""
     @Published var workoutNotes: String = ""
     @Published var exercises: [WorkoutExercise] = []
+    @Published var sourceTemplateId: UUID? = nil
     
     private var startTime: Date?
     private var timer: Timer?
@@ -101,6 +102,7 @@ class WorkoutManager: ObservableObject {
         workoutTitle = ""
         workoutNotes = ""
         exercises = []
+        sourceTemplateId = nil
     }
     
     func addExercise(_ exercise: Exercise) {
@@ -140,6 +142,9 @@ class WorkoutManager: ObservableObject {
     func loadFromTemplate(_ template: WorkoutTemplate) async {
         // Clear current exercises
         exercises = []
+        
+        // Set source template ID
+        sourceTemplateId = template.id
         
         // Set template-based title if no custom title
         if workoutTitle.isEmpty {
