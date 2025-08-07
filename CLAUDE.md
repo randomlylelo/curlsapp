@@ -11,38 +11,78 @@ This project uses a Feature-Based architecture with clear separation of concerns
 curlsapp/
 ├── App/
 │   ├── curlsappApp.swift                    # Main app entry point
-│   └── ContentView.swift                    # Main tab view
+│   └── ContentView.swift                    # Main tab view with workout timer bar
 ├── Features/
 │   ├── ExerciseDatabase/                    # Exercise browsing & details feature
 │   │   ├── Models/
-│   │   │   └── Exercise.swift               # Exercise data model
+│   │   │   └── Exercise.swift               # Exercise data model with custom exercise support
 │   │   ├── ViewModels/
 │   │   │   ├── ExercisesViewModel.swift     # Exercise list business logic
 │   │   │   └── ExerciseDetailViewModel.swift # Exercise detail business logic
 │   │   ├── Views/
 │   │   │   ├── ExercisesView.swift          # Exercise list UI
 │   │   │   ├── ExerciseDetailView.swift     # Exercise detail UI
-│   │   │   └── BodyDiagramView.swift        # Interactive body diagram component
+│   │   │   ├── BodyDiagramView.swift        # Interactive body diagram component
+│   │   │   └── MuscleSelectionView.swift    # Muscle group selection UI
 │   │   └── Services/
 │   │       └── ExerciseService.swift        # Exercise data operations
-│   ├── WorkoutSession/                      # Active workout tracking feature
+│   ├── History/                             # Workout history & analytics feature
+│   │   ├── Models/
+│   │   │   ├── CompletedExercise.swift      # Completed exercise data model
+│   │   │   ├── CompletedSet.swift           # Completed set data model
+│   │   │   └── CompletedWorkout.swift       # Completed workout data model
+│   │   ├── Services/
+│   │   │   └── WorkoutStorageService.swift  # Workout persistence operations
+│   │   ├── ViewModels/
+│   │   │   └── HistoryViewModel.swift       # History business logic
 │   │   └── Views/
-│   │       └── HistoryView.swift            # Workout history UI (placeholder)
-│   └── WorkoutHistory/                      # Workout history & analytics feature
+│   │       ├── HistoryView.swift            # Workout history list UI
+│   │       ├── WorkoutDetailView.swift      # Individual workout detail UI
+│   │       └── WorkoutListItemView.swift    # Workout list item component
+│   ├── Session/                             # Active workout tracking feature
+│   │   ├── Models/
+│   │   │   └── WorkoutInput.swift           # Workout session input data
+│   │   ├── ViewModels/
+│   │   │   └── WorkoutInputFocusManager.swift # Input focus management
+│   │   └── Views/
+│   │       ├── CompactExerciseTitleView.swift # Compact exercise title component
+│   │       ├── CustomNumberPad.swift        # Custom numeric input pad
+│   │       ├── ExerciseCardView.swift       # Exercise card in session
+│   │       ├── ExerciseSelectionView.swift  # Exercise selection UI
+│   │       ├── WorkoutSessionView.swift     # Active workout session UI
+│   │       └── WorkoutView.swift            # Main workout tab UI
+│   └── Templates/                           # Workout template management feature
+│       ├── Models/
+│       │   └── WorkoutTemplate.swift        # Template data models
+│       ├── Services/
+│       │   ├── TemplateStorageService.swift # Template persistence
+│       │   └── TemplateValidationService.swift # Template validation logic
 │       └── Views/
-│           └── WorkoutView.swift            # Active workout UI (placeholder)
+│           ├── SaveTemplateModal.swift      # Save template dialog
+│           ├── TemplateCard.swift           # Template card component
+│           ├── TemplateEditorView.swift     # Template editing UI
+│           └── TemplateExerciseCardView.swift # Template exercise card
 ├── Shared/
-│   └── Models/
-│       ├── BodyPart.swift                   # Body part definitions
-│       ├── BodyBack.swift                   # Back body diagram data
-│       ├── BodyFront.swift                  # Front body diagram data
-│       └── ExtendedBodyPart.swift           # Enhanced body part model
+│   ├── Components/
+│   │   └── AlphabetIndexView.swift          # Alphabet index sidebar component
+│   ├── Extensions/
+│   │   └── Date+Extensions.swift            # Date utility extensions
+│   ├── Models/
+│   │   ├── BodyPart.swift                   # Body part definitions
+│   │   ├── BodyBack.swift                   # Back body diagram data
+│   │   ├── BodyFront.swift                  # Front body diagram data
+│   │   ├── ExtendedBodyPart.swift           # Enhanced body part model
+│   │   ├── MuscleGroup.swift                # Muscle group definitions
+│   │   └── WorkoutManager.swift             # Global workout state manager
+│   ├── Services/
+│   │   └── TimeFormatter.swift              # Time formatting utilities
+│   └── Views/
+│       ├── AddCustomExerciseView.swift      # Custom exercise creation UI
+│       └── ExerciseTitleCardView.swift      # Exercise title display component
 └── Resources/
     └── Data/
         ├── exercises.json                   # Exercise database
-        ├── bodyparts.json                   # Body parts data
-        ├── equipments.json                  # Equipment types
-        └── muscles.json                     # Muscle groups
+        └── schema.json                      # Data schema definition
 ```
 
 ## Architecture Guidelines
@@ -71,9 +111,49 @@ curlsapp/
 - Shared models go in `Shared/Models/`
 - Feature-specific models go in `Features/{FeatureName}/Models/`
 
-### Future Features
-When expanding WorkoutSession and WorkoutHistory features:
-1. Add Models, ViewModels, and Services folders to each feature as needed
-2. Follow same structure: Models, ViewModels, Views, Services
-3. Move business logic from placeholder Views into proper ViewModels
-4. Create Services for workout data persistence and tracking
+## Current Features
+
+### ExerciseDatabase
+- **Complete**: Exercise browsing, filtering, and detailed views
+- **Body diagram**: Interactive muscle group selection
+- **Custom exercises**: Support for user-created exercises
+- **Search & filter**: By muscle groups, equipment, difficulty level
+
+### Session (Active Workouts)
+- **Complete**: Full workout tracking with timer
+- **Exercise selection**: From database with custom exercise creation
+- **Set tracking**: Weight, reps, and rest timer functionality
+- **Input management**: Custom number pad and focus management
+- **Session state**: Global workout manager with minimization support
+
+### History
+- **Complete**: Workout history storage and display
+- **Persistence**: Local workout storage with completed exercise/set models
+- **Analytics**: Duration, volume, and set count tracking
+- **Detail views**: Individual workout review and analysis
+
+### Templates
+- **Complete**: Workout template creation and management
+- **Template creation**: Save workouts as reusable templates
+- **Template usage**: Start workouts from saved templates
+- **Validation**: Template data validation and integrity checks
+- **Management**: Template editing and organization
+
+## Key Architectural Patterns
+
+### State Management
+- `WorkoutManager.shared`: Global singleton for active workout state
+- `@Observable` ViewModels for feature-specific state
+- Persistent storage through dedicated services
+
+### Data Flow
+1. **Services** load and persist data (JSON files, local storage)
+2. **ViewModels** manage UI state and coordinate with services
+3. **Views** bind to ViewModels using SwiftUI data binding
+4. **Models** define data structures with Codable support
+
+### UI Components
+- **Feature Views**: Main screens for each feature area
+- **Shared Components**: Reusable UI elements across features
+- **Custom Components**: Specialized UI like body diagrams and number pads
+- **Extensions**: Utility extensions for common functionality
