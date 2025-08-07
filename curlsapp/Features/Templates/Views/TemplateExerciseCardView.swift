@@ -87,21 +87,19 @@ struct TemplateExerciseCardView: View {
                                     .font(.system(size: 16))
                                     .foregroundColor(.secondary)
                                     .frame(width: geometry.size.width * 0.35, alignment: .center)
-                                    .padding(.horizontal, 4)
                                 
                                 // Reps placeholder
                                 Text("—")
                                     .font(.system(size: 16))
                                     .foregroundColor(.secondary)
                                     .frame(width: geometry.size.width * 0.35, alignment: .center)
-                                    .padding(.horizontal, 4)
                                 
                                 // Empty space for consistency
                                 Spacer()
                                     .frame(width: geometry.size.width * 0.15)
                             }
                         }
-                        .frame(height: 40)
+                        .frame(height: 25)
                     }
                 }
                 

@@ -11,7 +11,7 @@ struct CreateTemplateView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var templateStorage = TemplateStorageService.shared
     
-    @State private var templateName = ""
+    @State private var templateName = "New Template"
     @State private var templateNotes = ""
     @State private var selectedExercises: [Exercise] = []
     @State private var templateExercises: [TemplateExercise] = []
@@ -122,7 +122,7 @@ struct CreateTemplateView: View {
                                     isEditingTitle = true
                                 }) {
                                     HStack {
-                                        Text(templateName.isEmpty ? getDefaultTemplateName() : templateName)
+                                        Text(templateName)
                                             .font(.title.weight(.semibold))
                                             .foregroundColor(.primary)
                                             .lineLimit(1)
@@ -272,10 +272,10 @@ struct CreateTemplateView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(templateName.isEmpty || templateExercises.isEmpty ? Color.gray : Color.green)
+                            .background(templateExercises.isEmpty ? Color.gray : Color.green)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    .disabled(templateName.isEmpty || templateExercises.isEmpty)
+                    .disabled(templateExercises.isEmpty)
                     .padding(.horizontal)
                     .padding(.top, 16)
                     .padding(.bottom)
