@@ -55,10 +55,12 @@ struct WorkoutExercise: Identifiable {
     let id = UUID()
     let exercise: Exercise
     var sets: [WorkoutSet] = [WorkoutSet()]
+    var notes: String = ""
     
-    init(exercise: Exercise) {
+    init(exercise: Exercise, notes: String = "") {
         self.exercise = exercise
         self.sets = [WorkoutSet()]
+        self.notes = notes
     }
 }
 
@@ -251,6 +253,12 @@ class WorkoutManager: ObservableObject {
         }
     }
     
+    func updateExerciseNotes(exerciseId: UUID, notes: String) {
+        if let exerciseIndex = exercises.firstIndex(where: { $0.id == exerciseId }) {
+            exercises[exerciseIndex].notes = notes
+        }
+    }
+    
     func moveExercise(from sourceIndex: Int, to destinationIndex: Int) {
         guard sourceIndex != destinationIndex,
               exercises.indices.contains(sourceIndex),
@@ -279,7 +287,8 @@ class WorkoutManager: ObservableObject {
             return CompletedExercise(
                 exerciseId: workoutExercise.exercise.id,
                 exerciseName: workoutExercise.exercise.name,
-                sets: completedSets
+                sets: completedSets,
+                notes: workoutExercise.notes
             )
         }
         

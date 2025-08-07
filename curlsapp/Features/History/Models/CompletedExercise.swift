@@ -12,12 +12,14 @@ struct CompletedExercise: Identifiable, Codable {
     let exerciseId: String
     let exerciseName: String
     let sets: [CompletedSet]
+    let notes: String
     
-    init(id: UUID = UUID(), exerciseId: String, exerciseName: String, sets: [CompletedSet]) {
+    init(id: UUID = UUID(), exerciseId: String, exerciseName: String, sets: [CompletedSet], notes: String = "") {
         self.id = id
         self.exerciseId = exerciseId
         self.exerciseName = exerciseName
         self.sets = sets
+        self.notes = notes
     }
     
     var totalVolume: Double {

@@ -66,9 +66,9 @@ struct AddCustomExerciseView: View {
                                     onRemove: { altNames.remove(at: index) }
                                 )
                             }
-                            customAddButton("Add Alternative Name") {
-                                altNames.append("")
-                            }
+//                            customAddButton("Add Alternative Name") {
+//                                altNames.append("")
+//                            }
                         }
                     }
                     

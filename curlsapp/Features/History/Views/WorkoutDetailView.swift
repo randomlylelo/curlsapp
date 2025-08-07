@@ -84,6 +84,14 @@ struct WorkoutDetailView: View {
                                 .font(.headline)
                                 .padding(.horizontal)
                             
+                            if !exercise.notes.isEmpty {
+                                Text(exercise.notes)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal)
+                                    .padding(.top, -8)
+                            }
+                            
                             VStack(spacing: 0) {
                                 ForEach(Array(exercise.sets.enumerated()), id: \.element.id) { index, set in
                                     HStack {

@@ -64,6 +64,21 @@ struct ExerciseCardView: View {
                 .font(.title3.weight(.semibold))
                 .foregroundColor(.primary)
             
+            // Notes input
+            TextField("Add a note...", text: .init(
+                get: { workoutExercise.notes },
+                set: { newValue in
+                    workoutManager.updateExerciseNotes(exerciseId: workoutExercise.id, notes: newValue)
+                }
+            ))
+            .textFieldStyle(.plain)
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            
             // Sets grid
             VStack(spacing: 4) {
                 // Header row
