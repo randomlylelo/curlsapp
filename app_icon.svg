@@ -1,0 +1,43 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Baby blue background -->
+  <rect width="1024" height="1024" fill="#87CEEB" rx="180" ry="180"/>
+  
+  <!-- EZ Bar design centered -->
+  <g transform="translate(512, 512)">
+    
+    <!-- Left weight plates (simplified rectangles) -->
+    <g transform="translate(-240, 0)">
+      <!-- Outer plate -->
+      <rect x="-25" y="-80" width="50" height="160" rx="8" fill="#2C2C2C"/>
+      <!-- Inner plate -->
+      <rect x="-20" y="-60" width="40" height="120" rx="6" fill="#1A1A1A"/>
+    </g>
+    
+    <!-- Right weight plates (simplified rectangles) -->
+    <g transform="translate(240, 0)">
+      <!-- Outer plate -->
+      <rect x="-25" y="-80" width="50" height="160" rx="8" fill="#2C2C2C"/>
+      <!-- Inner plate -->
+      <rect x="-20" y="-60" width="40" height="120" rx="6" fill="#1A1A1A"/>
+    </g>
+    
+    <!-- EZ Bar with smooth curved wave -->
+    <path d="M -215 0 
+             Q -160 -30 -120 0 
+             Q -80 30 -40 0 
+             Q 0 -30 40 0 
+             Q 80 30 120 0 
+             Q 160 -30 215 0" 
+          stroke="#2C2C2C" 
+          stroke-width="24" 
+          fill="none" 
+          stroke-linecap="round"/>
+          
+    <!-- Bar grip sections (thicker areas) -->
+    <circle cx="-80" cy="0" r="16" fill="#2C2C2C"/>
+    <circle cx="-40" cy="0" r="16" fill="#2C2C2C"/>
+    <circle cx="40" cy="0" r="16" fill="#2C2C2C"/>
+    <circle cx="80" cy="0" r="16" fill="#2C2C2C"/>
+    
+  </g>
+</svg>
