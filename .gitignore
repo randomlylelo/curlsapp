@@ -1,0 +1,9 @@
+# Build outputs
+build/
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# Archives
+*.ipa
+*.dSYM.zip
