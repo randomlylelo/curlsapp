@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct CustomNumberPad: View {
     @ObservedObject var focusManager: WorkoutInputFocusManager
@@ -218,6 +219,8 @@ struct NumberPadButton: View {
     let isEnabled: Bool
     let action: () -> Void
     
+    @State private var isPressed = false
+    
     init(
         title: String? = nil,
         systemImage: String? = nil,
@@ -256,8 +259,23 @@ struct NumberPadButton: View {
             .frame(height: buttonHeight)
             .foregroundColor(isEnabled ? (backgroundColor == Color.blue ? .white : .primary) : .secondary)
             .background(isEnabled ? backgroundColor : Color(.systemGray6))
+            .scaleEffect(isPressed ? AnimationConstants.buttonPressScale : 1.0)
+            .opacity(isPressed ? AnimationConstants.buttonPressOpacity : 1.0)
         }
+        .buttonStyle(CustomButtonStyle(isPressed: $isPressed))
         .disabled(!isEnabled)
+        .animation(AnimationConstants.quickAnimation, value: isPressed)
+    }
+}
+
+struct CustomButtonStyle: ButtonStyle {
+    @Binding var isPressed: Bool
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .onChange(of: configuration.isPressed) { _, newValue in
+                isPressed = newValue
+            }
     }
 }
 
@@ -276,10 +294,12 @@ struct NumberInputField: View {
     
     var body: some View {
         Button(action: {
-            focusManager.activateInput(
-                InputIdentifier(exerciseId: exerciseId, setId: setId, type: inputType),
-                currentValue: value.isEmpty ? "0" : value
-            )
+            withAnimation(AnimationConstants.quickAnimation) {
+                focusManager.activateInput(
+                    InputIdentifier(exerciseId: exerciseId, setId: setId, type: inputType),
+                    currentValue: value.isEmpty ? "0" : value
+                )
+            }
         }) {
             Text(value.isEmpty ? placeholder : value)
                 .font(.system(size: 16, weight: .medium))
@@ -294,11 +314,14 @@ struct NumberInputField: View {
                                 .stroke(isActive ? Color.blue : Color(.systemGray4), lineWidth: isActive ? 1.5 : 0.5)
                         )
                 )
+                .animation(AnimationConstants.quickAnimation, value: isActive)
         }
         .onChange(of: focusManager.currentValue) { _, newValue in
             if isActive {
-                value = newValue == "0" ? "" : newValue
-                onValueChange(newValue)
+                withAnimation(AnimationConstants.quickAnimation) {
+                    value = newValue == "0" ? "" : newValue
+                    onValueChange(newValue)
+                }
             }
         }
     }

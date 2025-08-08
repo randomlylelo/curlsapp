@@ -11,6 +11,7 @@ struct WorkoutDetailView: View {
     let workout: CompletedWorkout
     @Environment(\.dismiss) private var dismiss
     @State private var showingDeleteConfirmation = false
+    @State private var showContent = false
     
     var body: some View {
         ScrollView {
@@ -20,6 +21,12 @@ struct WorkoutDetailView: View {
                     Text(workout.title)
                         .font(.largeTitle)
                         .fontWeight(.bold)
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 20)
+                        .animation(
+                            AnimationConstants.gentleSpring.delay(0.1),
+                            value: showContent
+                        )
                     
                     HStack(spacing: 20) {
                         Label(workout.endDate.formattedFullDate(), systemImage: "calendar")
@@ -27,6 +34,12 @@ struct WorkoutDetailView: View {
                     }
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+                    .opacity(showContent ? 1 : 0)
+                    .offset(y: showContent ? 0 : 15)
+                    .animation(
+                        AnimationConstants.smoothAnimation.delay(0.15),
+                        value: showContent
+                    )
                     
                     HStack(spacing: 30) {
                         VStack(alignment: .leading) {
@@ -78,7 +91,7 @@ struct WorkoutDetailView: View {
                         .fontWeight(.semibold)
                         .padding(.horizontal)
                     
-                    ForEach(workout.exercises) { exercise in
+                    ForEach(Array(workout.exercises.enumerated()), id: \.element.id) { index, exercise in
                         VStack(alignment: .leading, spacing: 12) {
                             Text(exercise.exerciseName)
                                 .font(.headline)
@@ -136,6 +149,12 @@ struct WorkoutDetailView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .padding(.horizontal)
                         }
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 30)
+                        .animation(
+                            AnimationConstants.smoothAnimation.delay(0.45 + Double(index) * 0.05),
+                            value: showContent
+                        )
                     }
                 }
                 .padding(.top)
@@ -143,6 +162,11 @@ struct WorkoutDetailView: View {
             .padding(.vertical)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            withAnimation {
+                showContent = true
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(role: .destructive) {

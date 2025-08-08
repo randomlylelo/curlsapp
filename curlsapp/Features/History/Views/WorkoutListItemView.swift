@@ -9,6 +9,7 @@ import SwiftUI
 
 struct WorkoutListItemView: View {
     let workout: CompletedWorkout
+    @State private var isPressed = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -77,5 +78,18 @@ struct WorkoutListItemView: View {
         .padding()
         .background(Color(.systemGray6))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .scaleEffect(isPressed ? AnimationConstants.buttonPressScale : 1.0)
+        .opacity(isPressed ? AnimationConstants.buttonPressOpacity : 1.0)
+        .animation(AnimationConstants.quickAnimation, value: isPressed)
+        .onTapGesture {
+            withAnimation(AnimationConstants.quickAnimation) {
+                isPressed = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(AnimationConstants.quickAnimation) {
+                    isPressed = false
+                }
+            }
+        }
     }
 }

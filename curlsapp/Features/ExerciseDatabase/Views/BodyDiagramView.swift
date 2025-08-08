@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 import WebKit
 
 /// A SwiftUI view that displays an interactive body diagram with selectable body parts

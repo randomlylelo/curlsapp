@@ -13,19 +13,48 @@ struct AlphabetIndexView: View {
     let onLetterTapped: (String) -> Void
     
     @State private var isDragging = false
+    @State private var highlightedLetter: String?
     @GestureState private var dragLocation: CGPoint = .zero
     
     var body: some View {
         VStack(spacing: 0) {
             ForEach(alphabet, id: \.self) { letter in
+                let isAvailable = availableSections.contains(letter)
+                let isHighlighted = highlightedLetter == letter
+                
                 Text(letter)
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(availableSections.contains(letter) ? .accentColor : Color(.tertiaryLabel))
+                    .foregroundColor(
+                        isHighlighted ? .white :
+                        isAvailable ? .accentColor : Color(.tertiaryLabel)
+                    )
                     .frame(width: 20, height: 14)
+                    .background(
+                        Circle()
+                            .fill(isHighlighted ? Color.accentColor : Color.clear)
+                            .scaleEffect(isHighlighted ? 1.5 : 1.0)
+                            .animation(AnimationConstants.quickAnimation, value: isHighlighted)
+                    )
+                    .scaleEffect(isHighlighted ? 1.2 : 1.0)
+                    .animation(AnimationConstants.quickAnimation, value: isHighlighted)
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        if availableSections.contains(letter) {
+                        if isAvailable {
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                            impactFeedback.impactOccurred()
+                            
+                            withAnimation(AnimationConstants.quickAnimation) {
+                                highlightedLetter = letter
+                            }
+                            
                             onLetterTapped(letter)
+                            
+                            // Clear highlight after delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                withAnimation(AnimationConstants.quickAnimation) {
+                                    highlightedLetter = nil
+                                }
+                            }
                         }
                     }
             }
@@ -42,13 +71,18 @@ struct AlphabetIndexView: View {
                             }
                             .onChanged { value in
                                 if !isDragging {
-                                    isDragging = true
+                                    withAnimation(AnimationConstants.quickAnimation) {
+                                        isDragging = true
+                                    }
                                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                 }
                                 handleDrag(at: value.location, in: geometry)
                             }
                             .onEnded { _ in
-                                isDragging = false
+                                withAnimation(AnimationConstants.quickAnimation) {
+                                    isDragging = false
+                                    highlightedLetter = nil
+                                }
                             }
                     )
             }
@@ -62,6 +96,14 @@ struct AlphabetIndexView: View {
         
         if index >= 0 && index < alphabet.count {
             let letter = alphabet[index]
+            
+            // Always update highlight for visual feedback
+            if highlightedLetter != letter {
+                withAnimation(AnimationConstants.quickAnimation) {
+                    highlightedLetter = letter
+                }
+            }
+            
             if availableSections.contains(letter) {
                 onLetterTapped(letter)
             }

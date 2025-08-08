@@ -65,7 +65,11 @@ class HistoryViewModel {
         Task {
             do {
                 try await storageService.deleteWorkout(id: workout.id)
-                workouts.removeAll { $0.id == workout.id }
+                await MainActor.run {
+                    withAnimation(AnimationConstants.springAnimation) {
+                        workouts.removeAll { $0.id == workout.id }
+                    }
+                }
             } catch {
                 print("Failed to delete workout: \(error)")
             }

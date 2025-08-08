@@ -102,7 +102,7 @@ struct WorkoutSessionView: View {
         }
         
         // Reset all drag state
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+        withAnimation(AnimationConstants.springAnimation) {
             isReorderingMode = false
             draggedExerciseIndex = nil
             dropTargetIndex = nil
@@ -123,17 +123,28 @@ struct WorkoutSessionView: View {
                                     .font(.title.weight(.semibold))
                                     .textFieldStyle(PlainTextFieldStyle())
                                     .onSubmit {
-                                        isEditingTitle = false
+                                        withAnimation(AnimationConstants.standardAnimation) {
+                                            isEditingTitle = false
+                                        }
                                     }
+                                    .transition(.asymmetric(
+                                        insertion: .opacity.combined(with: .scale(scale: 0.95)),
+                                        removal: .opacity
+                                    ))
                                 
                                 Button("Done") {
-                                    isEditingTitle = false
+                                    withAnimation(AnimationConstants.standardAnimation) {
+                                        isEditingTitle = false
+                                    }
                                 }
                                 .font(.subheadline)
                                 .foregroundColor(.blue)
+                                .transition(.opacity)
                             } else {
                                 Button(action: {
-                                    isEditingTitle = true
+                                    withAnimation(AnimationConstants.standardAnimation) {
+                                        isEditingTitle = true
+                                    }
                                 }) {
                                     HStack {
                                         Text(workoutManager.workoutTitle.isEmpty ? getDefaultWorkoutTitle() : workoutManager.workoutTitle)
@@ -146,6 +157,10 @@ struct WorkoutSessionView: View {
                                             .foregroundColor(.secondary)
                                     }
                                 }
+                                .transition(.asymmetric(
+                                    insertion: .opacity,
+                                    removal: .opacity.combined(with: .scale(scale: 0.95))
+                                ))
                             }
                             
                             Spacer()
@@ -186,8 +201,13 @@ struct WorkoutSessionView: View {
                                         )
                                     } else {
                                         ExerciseCardView(workoutExercise: workoutExercise)
+                                            .transition(.asymmetric(
+                                                insertion: .opacity.combined(with: .move(edge: .bottom)),
+                                                removal: .opacity.combined(with: .scale)
+                                            ))
                                     }
                                 }
+                                .animation(AnimationConstants.smoothAnimation, value: isReorderingMode)
                                 .simultaneousGesture(
                                     // Long press gesture - only triggers on completion, not during press
                                     LongPressGesture(minimumDuration: 0.5)
@@ -197,7 +217,7 @@ struct WorkoutSessionView: View {
                                             impactFeedback.impactOccurred()
                                             
                                             draggedExerciseIndex = index
-                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                            withAnimation(AnimationConstants.springAnimation) {
                                                 isReorderingMode = true
                                             }
                                         }
@@ -238,7 +258,7 @@ struct WorkoutSessionView: View {
                             .padding(.horizontal)
                             .padding(.top, 4)
                             .transition(.opacity.combined(with: .scale))
-                            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: dropTargetIndex)
+                            .animation(AnimationConstants.springAnimation, value: dropTargetIndex)
                         }
                     }
                     
@@ -304,7 +324,9 @@ struct WorkoutSessionView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Cancel") {
-                        showingCancelConfirmation = true
+                        withAnimation(AnimationConstants.standardAnimation) {
+                            showingCancelConfirmation = true
+                        }
                     }
                     .foregroundColor(.red)
                 }
@@ -375,8 +397,12 @@ struct WorkoutSessionView: View {
             if showingCancelConfirmation {
                 Color.black.opacity(0.3)
                     .ignoresSafeArea()
+                    .transition(.opacity)
+                    .animation(AnimationConstants.standardAnimation, value: showingCancelConfirmation)
                     .onTapGesture {
-                        showingCancelConfirmation = false
+                        withAnimation(AnimationConstants.standardAnimation) {
+                            showingCancelConfirmation = false
+                        }
                     }
                 
                 VStack(spacing: 20) {
@@ -391,7 +417,9 @@ struct WorkoutSessionView: View {
                     
                     VStack(spacing: 12) {
                         Button("Cancel Workout") {
-                            showingCancelConfirmation = false
+                            withAnimation(AnimationConstants.standardAnimation) {
+                                showingCancelConfirmation = false
+                            }
                             workoutManager.endWorkout()
                             isPresented = false
                             dismiss()
@@ -403,7 +431,9 @@ struct WorkoutSessionView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         
                         Button("Continue") {
-                            showingCancelConfirmation = false
+                            withAnimation(AnimationConstants.standardAnimation) {
+                                showingCancelConfirmation = false
+                            }
                         }
                         .font(.headline)
                         .foregroundColor(.blue)
@@ -415,6 +445,11 @@ struct WorkoutSessionView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(radius: 10)
                 .padding(.horizontal, 40)
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.9).combined(with: .opacity),
+                    removal: .scale(scale: 0.9).combined(with: .opacity)
+                ))
+                .animation(AnimationConstants.standardAnimation, value: showingCancelConfirmation)
             }
         }
     }

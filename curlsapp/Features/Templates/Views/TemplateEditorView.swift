@@ -150,7 +150,7 @@ struct TemplateEditorView: View {
             }
         }
         
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+        withAnimation(AnimationConstants.springAnimation) {
             isReorderingMode = false
             draggedExerciseIndex = nil
             dropTargetIndex = nil
@@ -171,17 +171,28 @@ struct TemplateEditorView: View {
                                     .font(.title.weight(.semibold))
                                     .textFieldStyle(PlainTextFieldStyle())
                                     .onSubmit {
-                                        isEditingTitle = false
+                                        withAnimation(AnimationConstants.standardAnimation) {
+                                            isEditingTitle = false
+                                        }
                                     }
+                                    .transition(.asymmetric(
+                                        insertion: .opacity.combined(with: .scale(scale: 0.95)),
+                                        removal: .opacity
+                                    ))
                                 
                                 Button("Done") {
-                                    isEditingTitle = false
+                                    withAnimation(AnimationConstants.standardAnimation) {
+                                        isEditingTitle = false
+                                    }
                                 }
                                 .font(.subheadline)
                                 .foregroundColor(.blue)
+                                .transition(.opacity)
                             } else {
                                 Button(action: {
-                                    isEditingTitle = true
+                                    withAnimation(AnimationConstants.standardAnimation) {
+                                        isEditingTitle = true
+                                    }
                                 }) {
                                     HStack {
                                         Text(templateName)
@@ -194,6 +205,10 @@ struct TemplateEditorView: View {
                                             .foregroundColor(.secondary)
                                     }
                                 }
+                                .transition(.asymmetric(
+                                    insertion: .opacity,
+                                    removal: .opacity.combined(with: .scale(scale: 0.95))
+                                ))
                             }
                             
                             Spacer()
@@ -247,7 +262,7 @@ struct TemplateEditorView: View {
                                             ),
                                             onRemove: {
                                                 let exerciseId = exercise.id
-                                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                                withAnimation(AnimationConstants.springAnimation) {
                                                     if let templateIndex = templateExercises.firstIndex(where: { $0.exerciseId == exerciseId }) {
                                                         templateExercises.remove(at: templateIndex)
                                                     }
@@ -266,7 +281,7 @@ struct TemplateEditorView: View {
                                             impactFeedback.impactOccurred()
                                             
                                             draggedExerciseIndex = index
-                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                            withAnimation(AnimationConstants.springAnimation) {
                                                 isReorderingMode = true
                                             }
                                         }
@@ -306,7 +321,7 @@ struct TemplateEditorView: View {
                             .padding(.horizontal)
                             .padding(.top, 4)
                             .transition(.opacity.combined(with: .scale))
-                            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: dropTargetIndex)
+                            .animation(AnimationConstants.springAnimation, value: dropTargetIndex)
                         }
                     }
                     

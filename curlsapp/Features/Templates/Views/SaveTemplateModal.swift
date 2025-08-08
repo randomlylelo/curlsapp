@@ -14,6 +14,7 @@ struct SaveTemplateModal: View {
     let onSkip: () -> Void
     
     @State private var templateName: String = ""
+    @State private var showContent = false
     @ObservedObject private var templateStorage = TemplateStorageService.shared
     
     var existingTemplate: WorkoutTemplate? {
@@ -49,10 +50,22 @@ struct SaveTemplateModal: View {
                             Text("Workout Complete")
                                 .font(.title2.weight(.semibold))
                         }
+                        .scaleEffect(showContent ? 1 : 0.8)
+                        .opacity(showContent ? 1 : 0)
+                        .animation(
+                            AnimationConstants.gentleSpring.delay(0.1),
+                            value: showContent
+                        )
                         
                         Text("Great job finishing your workout!")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
+                            .opacity(showContent ? 1 : 0)
+                            .offset(y: showContent ? 0 : 10)
+                            .animation(
+                                AnimationConstants.smoothAnimation.delay(0.15),
+                                value: showContent
+                            )
                     }
                     
                     // Summary Card
@@ -73,8 +86,26 @@ struct SaveTemplateModal: View {
                         // Key stats
                         HStack(spacing: 40) {
                             StatView(title: "Exercises", value: "\(completedWorkout.exercises.count)")
+                                .opacity(showContent ? 1 : 0)
+                                .offset(y: showContent ? 0 : 20)
+                                .animation(
+                                    AnimationConstants.smoothAnimation.delay(0.25),
+                                    value: showContent
+                                )
                             StatView(title: "Sets", value: "\(completedWorkout.totalSets)")
+                                .opacity(showContent ? 1 : 0)
+                                .offset(y: showContent ? 0 : 20)
+                                .animation(
+                                    AnimationConstants.smoothAnimation.delay(0.3),
+                                    value: showContent
+                                )
                             StatView(title: "Volume", value: "\(Int(completedWorkout.totalVolume)) lbs")
+                                .opacity(showContent ? 1 : 0)
+                                .offset(y: showContent ? 0 : 20)
+                                .animation(
+                                    AnimationConstants.smoothAnimation.delay(0.35),
+                                    value: showContent
+                                )
                         }
                         
                         // Exercise list
@@ -104,6 +135,12 @@ struct SaveTemplateModal: View {
                     .padding()
                     .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .opacity(showContent ? 1 : 0)
+                    .offset(y: showContent ? 0 : 30)
+                    .animation(
+                        AnimationConstants.gentleSpring.delay(0.2),
+                        value: showContent
+                    )
                     
                     // Template save section
                     VStack(spacing: 16) {
@@ -118,6 +155,12 @@ struct SaveTemplateModal: View {
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                         }
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 20)
+                        .animation(
+                            AnimationConstants.smoothAnimation.delay(0.4),
+                            value: showContent
+                        )
                         
                         // Template name input
                         VStack(alignment: .leading, spacing: 8) {
@@ -165,6 +208,8 @@ struct SaveTemplateModal: View {
                         
                         VStack(spacing: 12) {
                             Button(action: {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
                                 onSave(templateName, templateId)
                             }) {
                                 Text(existingTemplate != nil ? "Update Template" : "Save as Template")
@@ -176,8 +221,11 @@ struct SaveTemplateModal: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                             }
                             .disabled(templateName.isEmpty)
+                            .animation(AnimationConstants.quickAnimation, value: templateName.isEmpty)
                             
                             Button(action: {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                impactFeedback.impactOccurred()
                                 onSkip()
                             }) {
                                 Text("Finish Without Saving")
@@ -192,15 +240,28 @@ struct SaveTemplateModal: View {
                                     )
                             }
                         }
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 20)
+                        .animation(
+                            AnimationConstants.smoothAnimation.delay(0.5),
+                            value: showContent
+                        )
                     }
                 }
                 .padding()
+            }
+            .onAppear {
+                withAnimation {
+                    showContent = true
+                }
             }
             .navigationTitle("Workout Summary")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                        impactFeedback.impactOccurred()
                         onSkip()
                     }
                 }

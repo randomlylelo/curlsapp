@@ -14,9 +14,16 @@ struct TemplateCard: View {
     let onDelete: () -> Void
     let onDuplicate: () -> Void
     
+    @State private var isPressed = false
+    @State private var isMenuPressed = false
+    
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            Button(action: onTap) {
+            Button(action: {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                impactFeedback.impactOccurred()
+                onTap()
+            }) {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack {
                         Text(template.name)
@@ -58,22 +65,37 @@ struct TemplateCard: View {
                 .frame(maxWidth: .infinity, minHeight: 140, maxHeight: 140, alignment: .topLeading)
                 .background(Color(.systemGray6))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                .scaleEffect(isPressed ? AnimationConstants.buttonPressScale : 1.0)
+                .opacity(isPressed ? AnimationConstants.buttonPressOpacity : 1.0)
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(CustomPressedButtonStyle(isPressed: $isPressed))
+            .animation(AnimationConstants.quickAnimation, value: isPressed)
             
             // Separate menu button overlay
             Menu {
-                Button(action: onEdit) {
+                Button(action: {
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                    impactFeedback.impactOccurred()
+                    onEdit()
+                }) {
                     Label("Edit Template", systemImage: "pencil")
                 }
                 
-                Button(action: onDuplicate) {
+                Button(action: {
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                    impactFeedback.impactOccurred()
+                    onDuplicate()
+                }) {
                     Label("Duplicate Template", systemImage: "doc.on.doc")
                 }
                 
                 Divider()
                 
-                Button(role: .destructive, action: onDelete) {
+                Button(role: .destructive, action: {
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                    impactFeedback.impactOccurred()
+                    onDelete()
+                }) {
                     Label("Delete Template", systemImage: "trash")
                 }
             } label: {
@@ -82,8 +104,31 @@ struct TemplateCard: View {
                     .foregroundColor(.secondary)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
+                    .scaleEffect(isMenuPressed ? AnimationConstants.buttonPressScale : 1.0)
+                    .opacity(isMenuPressed ? AnimationConstants.buttonPressOpacity : 1.0)
             }
             .offset(x: -4, y: 4)
+            .onTapGesture {
+                withAnimation(AnimationConstants.quickAnimation) {
+                    isMenuPressed = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation(AnimationConstants.quickAnimation) {
+                        isMenuPressed = false
+                    }
+                }
+            }
         }
+    }
+}
+
+struct CustomPressedButtonStyle: ButtonStyle {
+    @Binding var isPressed: Bool
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .onChange(of: configuration.isPressed) { _, newValue in
+                isPressed = newValue
+            }
     }
 }

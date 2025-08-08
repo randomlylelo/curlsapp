@@ -10,6 +10,7 @@ import SwiftUI
 struct ExercisesView: View {
     @State private var viewModel = ExercisesViewModel()
     @State private var showingAddExercise = false
+    @State private var listItems: [String: Bool] = [:] // Track item visibility for animations
     
     var body: some View {
         NavigationStack {
@@ -21,14 +22,18 @@ struct ExercisesView: View {
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
                                 // All button
                                 Button("All") {
-                                    viewModel.selectedMuscleGroup = nil
+                                    withAnimation(AnimationConstants.standardAnimation) {
+                                        viewModel.selectedMuscleGroup = nil
+                                    }
                                 }
                                 .buttonStyle(FilterButtonStyle(isSelected: viewModel.selectedMuscleGroup == nil))
                                 
                                 // Muscle group buttons
                                 ForEach(MuscleGroup.allCases, id: \.self) { group in
                                     Button(group.rawValue) {
-                                        viewModel.selectedMuscleGroup = group
+                                        withAnimation(AnimationConstants.standardAnimation) {
+                                            viewModel.selectedMuscleGroup = group
+                                        }
                                     }
                                     .buttonStyle(FilterButtonStyle(isSelected: viewModel.selectedMuscleGroup == group))
                                 }
@@ -87,13 +92,15 @@ struct ExercisesView: View {
                                             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
                                         }
                                         .onDelete { indexSet in
-                                            let exercisesToDelete = indexSet.compactMap { index in
-                                                viewModel.sectionedExercises[section]?[index]
-                                            }
-                                            
-                                            Task {
-                                                for exercise in exercisesToDelete {
-                                                    await viewModel.deleteCustomExercise(id: exercise.id)
+                                            withAnimation(AnimationConstants.springAnimation) {
+                                                let exercisesToDelete = indexSet.compactMap { index in
+                                                    viewModel.sectionedExercises[section]?[index]
+                                                }
+                                                
+                                                Task {
+                                                    for exercise in exercisesToDelete {
+                                                        await viewModel.deleteCustomExercise(id: exercise.id)
+                                                    }
                                                 }
                                             }
                                         }
@@ -167,7 +174,7 @@ struct ExercisesView: View {
                             alphabet: viewModel.fullAlphabet,
                             availableSections: viewModel.alphabetSections,
                             onLetterTapped: { letter in
-                                withAnimation(.easeInOut(duration: 0.3)) {
+                                withAnimation(AnimationConstants.smoothAnimation) {
                                     scrollProxy.scrollTo(letter, anchor: .top)
                                 }
                                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -193,6 +200,8 @@ struct ExercisesView: View {
                         Spacer()
                         
                         Button {
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                            impactFeedback.impactOccurred()
                             showingAddExercise = true
                         } label: {
                             Image(systemName: "plus")
@@ -221,6 +230,7 @@ struct ExercisesView: View {
 
 private struct FilterButtonStyle: ButtonStyle {
     let isSelected: Bool
+    @State private var isPressed = false
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -234,8 +244,16 @@ private struct FilterButtonStyle: ButtonStyle {
                     .fill(isSelected ? Color.accentColor : Color(.systemGray6))
             )
             .foregroundColor(isSelected ? .white : .primary)
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? AnimationConstants.buttonPressScale : 1.0)
+            .opacity(configuration.isPressed ? AnimationConstants.buttonPressOpacity : 1.0)
+            .animation(AnimationConstants.quickAnimation, value: configuration.isPressed)
+            .animation(AnimationConstants.standardAnimation, value: isSelected)
+            .onChange(of: configuration.isPressed) { _, newValue in
+                if newValue {
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                    impactFeedback.impactOccurred()
+                }
+            }
     }
 }
 

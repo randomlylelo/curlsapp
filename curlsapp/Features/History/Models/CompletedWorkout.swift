@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct CompletedWorkout: Identifiable, Codable {
+struct CompletedWorkout: Identifiable, Codable, Equatable {
     let id: UUID
     let title: String
     let notes: String

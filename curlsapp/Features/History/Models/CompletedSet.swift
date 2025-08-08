@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct CompletedSet: Identifiable, Codable {
+struct CompletedSet: Identifiable, Codable, Equatable {
     let id: UUID
     let weight: Double
     let reps: Int
