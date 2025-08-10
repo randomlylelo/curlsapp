@@ -177,9 +177,15 @@ struct WorkoutSessionView: View {
                                 .foregroundColor(.primary)
                         }
                         
-                        // Single line notes
-                        TextField("Add notes...", text: $workoutManager.workoutNotes)
-                            .textFieldStyle(PlainTextFieldStyle())
+                        // Notes field
+                        TextField("Add notes...", text: $workoutManager.workoutNotes, axis: .vertical)
+                            .font(.body)
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .background(Color(.systemGray6))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .lineLimit(1...10)
                     }
                     .padding()
                     

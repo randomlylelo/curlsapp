@@ -70,14 +70,15 @@ struct ExerciseCardView: View {
                 set: { newValue in
                     workoutManager.updateExerciseNotes(exerciseId: workoutExercise.id, notes: newValue)
                 }
-            ))
+            ), axis: .vertical)
             .textFieldStyle(.plain)
             .font(.subheadline)
             .foregroundColor(.secondary)
             .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.vertical, 10)
             .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .lineLimit(1...6)
             
             // Sets grid
             VStack(spacing: 4) {
@@ -168,6 +169,7 @@ struct ExerciseCardView: View {
         }
     }
 }
+
 
 struct SetRowView: View {
     @ObservedObject var workoutManager = WorkoutManager.shared
