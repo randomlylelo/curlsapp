@@ -1,9 +1,31 @@
-# Build outputs
-build/
-DerivedData/
+# macOS
+.DS_Store
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xcscheme
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
 
-# Archives
+# Build outputs
+build/
+DerivedData/
 *.ipa
 *.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods (if used later)
+Pods/
+*.xcworkspace
+
+# Fastlane (if used later)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
