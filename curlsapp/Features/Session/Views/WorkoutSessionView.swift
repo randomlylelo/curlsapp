@@ -21,6 +21,7 @@ struct WorkoutSessionView: View {
     @State private var showingCancelConfirmation = false
     @State private var showingSaveTemplateModal = false
     @State private var completedWorkoutForTemplate: CompletedWorkout?
+    @State private var exerciseToReplaceId: UUID?
     
     // Drag and drop state
     @State private var isReorderingMode = false
@@ -263,7 +264,11 @@ struct WorkoutSessionView: View {
                                     } else {
                                         ExerciseCardView(
                                             workoutExercise: workoutExercise,
-                                            focusManager: globalFocusManager
+                                            focusManager: globalFocusManager,
+                                            onReplaceExercise: {
+                                                exerciseToReplaceId = workoutExercise.id
+                                                showingExerciseSelection = true
+                                            }
                                         )
                                         .id("exercise-\(workoutExercise.id)")
                                         .transition(.asymmetric(
@@ -426,7 +431,21 @@ struct WorkoutSessionView: View {
         }
         .sheet(isPresented: $showingExerciseSelection) {
             ExerciseSelectionView(excludedExerciseIds: Set(workoutManager.exercises.map { $0.exercise.id })) { exercise in
-                workoutManager.addExercise(exercise)
+                if let replaceId = exerciseToReplaceId {
+                    // Replace existing exercise
+                    workoutManager.deleteExercise(exerciseId: replaceId)
+                    workoutManager.addExercise(exercise)
+                    exerciseToReplaceId = nil
+                } else {
+                    // Add new exercise
+                    workoutManager.addExercise(exercise)
+                }
+            }
+        }
+        .onChange(of: showingExerciseSelection) { _, isShowing in
+            if !isShowing {
+                // Reset replace state when sheet is dismissed
+                exerciseToReplaceId = nil
             }
         }
         .sheet(isPresented: $showingSaveTemplateModal) {

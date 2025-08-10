@@ -11,10 +11,16 @@ struct ExerciseCardView: View {
     @ObservedObject var workoutManager = WorkoutManager.shared
     @ObservedObject var focusManager: WorkoutInputFocusManager
     let workoutExercise: WorkoutExercise
+    let onReplaceExercise: () -> Void
     
-    init(workoutExercise: WorkoutExercise, focusManager: WorkoutInputFocusManager) {
+    @State private var showingDeleteConfirmation = false
+    @State private var replaceButtonPressed = false
+    @State private var deleteButtonPressed = false
+    
+    init(workoutExercise: WorkoutExercise, focusManager: WorkoutInputFocusManager, onReplaceExercise: @escaping () -> Void) {
         self.workoutExercise = workoutExercise
         self.focusManager = focusManager
+        self.onReplaceExercise = onReplaceExercise
     }
     
     var body: some View {
@@ -37,12 +43,79 @@ struct ExerciseCardView: View {
         }
     }
     
-    private var cardMainContent: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Exercise title
+    private var exerciseTitleSection: some View {
+        HStack(alignment: .center, spacing: 12) {
+            // Exercise title - maintains visual prominence
             Text(workoutExercise.exercise.name)
                 .font(.title3.weight(.semibold))
                 .foregroundColor(.primary)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            // Always visible action icons
+            HStack(spacing: 8) {
+                // Replace exercise icon
+                Button(action: {
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                    impactFeedback.impactOccurred()
+                    onReplaceExercise()
+                }) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
+                }
+                .scaleEffect(replaceButtonPressed ? 0.9 : 1.0)
+                .opacity(replaceButtonPressed ? 0.6 : 1.0)
+                .animation(.easeInOut(duration: 0.1), value: replaceButtonPressed)
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { _ in replaceButtonPressed = true }
+                        .onEnded { _ in replaceButtonPressed = false }
+                )
+                
+                // Delete exercise icon
+                Button(action: {
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                    impactFeedback.impactOccurred()
+                    showingDeleteConfirmation = true
+                }) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
+                }
+                .scaleEffect(deleteButtonPressed ? 0.9 : 1.0)
+                .opacity(deleteButtonPressed ? 0.6 : 1.0)
+                .animation(.easeInOut(duration: 0.1), value: deleteButtonPressed)
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { _ in deleteButtonPressed = true }
+                        .onEnded { _ in deleteButtonPressed = false }
+                )
+            }
+        }
+        .alert("Delete Exercise", isPresented: $showingDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                impactFeedback.impactOccurred()
+                
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    workoutManager.deleteExercise(exerciseId: workoutExercise.id)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This will permanently remove \"\(workoutExercise.exercise.name)\" and all its sets from your workout.")
+        }
+    }
+    
+    private var cardMainContent: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Exercise title with actions
+            exerciseTitleSection
             
             // Notes input
             TextField("Add a note...", text: .init(

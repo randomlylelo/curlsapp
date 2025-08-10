@@ -258,6 +258,10 @@ class WorkoutManager: ObservableObject {
         }
     }
     
+    func deleteExercise(exerciseId: UUID) {
+        exercises.removeAll { $0.id == exerciseId }
+    }
+    
     func updateExerciseNotes(exerciseId: UUID, notes: String) {
         if let exerciseIndex = exercises.firstIndex(where: { $0.id == exerciseId }) {
             exercises[exerciseIndex].notes = notes
