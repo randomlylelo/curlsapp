@@ -16,6 +16,7 @@ struct ExerciseCardView: View {
     @State private var showingDeleteConfirmation = false
     @State private var replaceButtonPressed = false
     @State private var deleteButtonPressed = false
+    @State private var addSetButtonPressed = false
     
     init(workoutExercise: WorkoutExercise, focusManager: WorkoutInputFocusManager, onReplaceExercise: @escaping () -> Void) {
         self.workoutExercise = workoutExercise
@@ -182,12 +183,22 @@ struct ExerciseCardView: View {
                         )
                     }
                     .frame(height: 40)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .top).combined(with: .scale(scale: 0.95))),
+                        removal: .opacity.combined(with: .scale(scale: 0.95))
+                    ))
+                    .animation(AnimationConstants.gentleSpring, value: workoutExercise.sets.count)
                 }
             }
             
             // Add set button
             Button(action: {
-                workoutManager.addSet(to: workoutExercise.id)
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                impactFeedback.impactOccurred()
+                
+                withAnimation(AnimationConstants.gentleSpring) {
+                    workoutManager.addSet(to: workoutExercise.id)
+                }
             }) {
                 HStack {
                     Image(systemName: "plus.circle")
@@ -201,6 +212,14 @@ struct ExerciseCardView: View {
                 .background(Color(.systemGray5))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
+            .scaleEffect(addSetButtonPressed ? AnimationConstants.buttonPressScale : 1.0)
+            .opacity(addSetButtonPressed ? AnimationConstants.buttonPressOpacity : 1.0)
+            .animation(AnimationConstants.quickAnimation, value: addSetButtonPressed)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in addSetButtonPressed = true }
+                    .onEnded { _ in addSetButtonPressed = false }
+            )
             .padding(.top, 0)
         }
         .padding(.horizontal, 20)
@@ -223,6 +242,8 @@ struct SetRowView: View {
     @State private var dragOffset: CGSize = .zero
     @State private var showingDeleteAction = false
     @State private var showingCompleteAction = false
+    @State private var checkmarkPressed = false
+    @State private var checkmarkScale: CGFloat = 1.0
     
     var body: some View {
         ZStack {
@@ -266,6 +287,7 @@ struct SetRowView: View {
                 // Background highlight for completed sets
                 Rectangle()
                     .fill(set.isCompleted ? Color.green.opacity(0.1) : Color(.systemBackground))
+                    .animation(AnimationConstants.standardAnimation, value: set.isCompleted)
                 
                 // Content with exact proportions matching header: 0.1, 0.4, 0.2, 0.2, 0.1
                 HStack(spacing: 0) {
@@ -316,15 +338,34 @@ struct SetRowView: View {
                     .padding(.leading, 4)
                     
                     // Checkmark - 0.1 width
-                    Image(systemName: set.isCompleted ? "checkmark.square.fill" : "square")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(set.isCompleted ? .green : .gray)
-                        .frame(width: columnWidth * 0.1, alignment: .center)
-                        .onTapGesture {
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                            impactFeedback.impactOccurred()
-                            workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
-                        }
+                    ZStack {
+                        // Background circle for animation effect
+                        Circle()
+                            .fill(set.isCompleted ? Color.green.opacity(0.2) : Color.clear)
+                            .frame(width: 28, height: 28)
+                            .scaleEffect(set.isCompleted ? 1.0 : 0.8)
+                            .opacity(set.isCompleted ? 1.0 : 0.0)
+                            .animation(AnimationConstants.springAnimation, value: set.isCompleted)
+                        
+                        // Main checkmark icon
+                        Image(systemName: set.isCompleted ? "checkmark.square.fill" : "square")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(set.isCompleted ? .green : .gray)
+                            .scaleEffect(checkmarkScale)
+                            .animation(.none, value: checkmarkPressed) // Prevent automatic animation
+                    }
+                    .frame(width: columnWidth * 0.1, alignment: .center)
+                    .scaleEffect(checkmarkPressed ? AnimationConstants.buttonPressScale : 1.0)
+                    .opacity(checkmarkPressed ? AnimationConstants.buttonPressOpacity : 1.0)
+                    .animation(AnimationConstants.quickAnimation, value: checkmarkPressed)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { _ in checkmarkPressed = true }
+                            .onEnded { _ in 
+                                checkmarkPressed = false
+                                handleCheckmarkTap()
+                            }
+                    )
                 }
             }
             .offset(dragOffset)
@@ -362,9 +403,7 @@ struct SetRowView: View {
                                 workoutManager.deleteSet(exerciseId: exerciseId, setId: set.id)
                             } else if translation.width > 100 {
                                 // Right swipe - Toggle complete
-                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                                impactFeedback.impactOccurred()
-                                workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
+                                handleSwipeCompletion()
                             }
                         }
                         
@@ -391,6 +430,80 @@ struct SetRowView: View {
             if focusManager.activeInput?.setId != set.id || focusManager.activeInput?.type != .reps {
                 repsText = newReps > 0 ? "\(newReps)" : ""
             }
+        }
+    }
+    
+    private func handleCheckmarkTap() {
+        let wasCompleted = set.isCompleted
+        
+        if !wasCompleted {
+            // Completing a set - celebratory animation
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            impactFeedback.impactOccurred()
+            
+            // Primary completion animation
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                checkmarkScale = 1.3
+            }
+            
+            // Secondary bounce back
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    checkmarkScale = 1.0
+                }
+            }
+            
+            
+            // Success haptic after a brief delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                let successFeedback = UINotificationFeedbackGenerator()
+                successFeedback.notificationOccurred(.success)
+            }
+        } else {
+            // Uncompleting a set - simple feedback
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            impactFeedback.impactOccurred()
+        }
+        
+        // Update the model
+        withAnimation(AnimationConstants.standardAnimation) {
+            workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
+        }
+    }
+    
+    private func handleSwipeCompletion() {
+        let wasCompleted = set.isCompleted
+        
+        if !wasCompleted {
+            // Completing via swipe - more immediate feedback
+            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+            impactFeedback.impactOccurred()
+            
+            // Quick celebration for swipe completion
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                checkmarkScale = 1.2
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
+                    checkmarkScale = 1.0
+                }
+            }
+            
+            // Success haptic for swipe completion
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                let successFeedback = UINotificationFeedbackGenerator()
+                successFeedback.notificationOccurred(.success)
+            }
+        } else {
+            // Uncompleting via swipe
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            impactFeedback.impactOccurred()
+        }
+        
+        // Update the model
+        withAnimation(AnimationConstants.standardAnimation) {
+            workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
         }
     }
 }

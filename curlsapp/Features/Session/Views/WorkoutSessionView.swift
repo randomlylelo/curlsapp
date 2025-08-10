@@ -23,6 +23,9 @@ struct WorkoutSessionView: View {
     @State private var completedWorkoutForTemplate: CompletedWorkout?
     @State private var exerciseToReplaceId: UUID?
     
+    // Animation states
+    @State private var doneButtonPressed = false
+    
     // Drag and drop state
     @State private var isReorderingMode = false
     @State private var draggedExerciseIndex: Int? = nil
@@ -189,18 +192,27 @@ struct WorkoutSessionView: View {
                                     ))
                                 
                                 Button("Done") {
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                    impactFeedback.impactOccurred()
+                                    
                                     withAnimation(AnimationConstants.standardAnimation) {
                                         isEditingTitle = false
                                     }
                                 }
                                 .font(.subheadline)
                                 .foregroundColor(.blue)
+                                .scaleEffect(doneButtonPressed ? AnimationConstants.buttonPressScale : 1.0)
+                                .opacity(doneButtonPressed ? AnimationConstants.buttonPressOpacity : 1.0)
+                                .animation(AnimationConstants.quickAnimation, value: doneButtonPressed)
+                                .simultaneousGesture(
+                                    DragGesture(minimumDistance: 0)
+                                        .onChanged { _ in doneButtonPressed = true }
+                                        .onEnded { _ in doneButtonPressed = false }
+                                )
                                 .transition(.opacity)
                             } else {
                                 Button(action: {
-                                    withAnimation(AnimationConstants.standardAnimation) {
-                                        isEditingTitle = true
-                                    }
+                                    isEditingTitle = true
                                 }) {
                                     HStack {
                                         Text(workoutManager.workoutTitle.isEmpty ? getDefaultWorkoutTitle() : workoutManager.workoutTitle)
