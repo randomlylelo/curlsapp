@@ -23,26 +23,6 @@ struct CustomNumberPad: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Clean value display
-            HStack {
-                Spacer()
-                
-                Text(focusManager.currentValue.isEmpty ? "0" : focusManager.currentValue)
-                    .font(.largeTitle.monospacedDigit().weight(.regular))
-                    .foregroundColor(.primary)
-                    .contentTransition(.numericText())
-                
-                Spacer()
-            }
-            .frame(height: 60)
-            .background(keyboardBackgroundColor)
-            .overlay(
-                Rectangle()
-                    .frame(height: 0.33)
-                    .foregroundColor(Color(.separator)),
-                alignment: .bottom
-            )
-            
             // 4x4 Calculator-style grid
             VStack(spacing: spacing) {
                 // Row 1: 1 2 3 Done

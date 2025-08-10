@@ -381,8 +381,9 @@ struct WorkoutSessionView: View {
                         // Delay slightly to ensure keyboard overlay is rendered
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             withAnimation(.easeOut(duration: 0.4)) {
-                                // Use UnitPoint to position content higher to account for keyboard
-                                proxy.scrollTo("exercise-\(activeInput.exerciseId)", anchor: UnitPoint(x: 0.5, y: 0.3))
+                                // Adjusted for smaller keyboard height (removed 60pt value display)
+                                // Position content slightly lower since keyboard is now shorter
+                                proxy.scrollTo("exercise-\(activeInput.exerciseId)", anchor: UnitPoint(x: 0.5, y: 0.4))
                             }
                         }
                     }
