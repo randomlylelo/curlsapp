@@ -13,80 +13,104 @@ struct CustomNumberPad: View {
     let onNext: () -> Void
     let onValueUpdate: (String) -> Void
     
-    private let buttonHeight: CGFloat = 56
-    private let spacing: CGFloat = 1
-    private let backgroundColor = Color(.systemGray5)
-    private let buttonColor = Color(.systemBackground)
+    private let buttonHeight: CGFloat = 52
+    private let spacing: CGFloat = 0.5
+    private let keyboardBackgroundColor = Color(.systemGray6)
     
     var allowsDecimal: Bool {
         focusManager.activeInput?.type == .weight
     }
     
     var body: some View {
-        VStack(spacing: spacing) {
-            // Header with current value display
+        VStack(spacing: 0) {
+            // Clean value display
             HStack {
-                Text(focusManager.activeInput?.type == .weight ? "Weight" : "Reps")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
                 Spacer()
                 
                 Text(focusManager.currentValue.isEmpty ? "0" : focusManager.currentValue)
-                    .font(.title2.monospacedDigit().weight(.medium))
+                    .font(.largeTitle.monospacedDigit().weight(.regular))
                     .foregroundColor(.primary)
+                    .contentTransition(.numericText())
+                
+                Spacer()
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-            .background(Color(.systemGray6))
+            .frame(height: 60)
+            .background(keyboardBackgroundColor)
+            .overlay(
+                Rectangle()
+                    .frame(height: 0.33)
+                    .foregroundColor(Color(.separator)),
+                alignment: .bottom
+            )
             
-            // Number pad grid
+            // 4x4 Calculator-style grid
             VStack(spacing: spacing) {
-                // First three rows (1-9)
-                ForEach(0..<3, id: \.self) { row in
-                    HStack(spacing: spacing) {
-                        ForEach(1...3, id: \.self) { col in
-                            let number = row * 3 + col
-                            NumberPadButton(title: "\(number)", buttonHeight: buttonHeight) {
-                                appendNumber("\(number)")
-                            }
-                        }
-                        
-                        // Right column buttons
-                        if row == 0 {
-                            NumberPadButton(
-                                title: "Done",
-                                systemImage: "chevron.down",
-                                buttonHeight: buttonHeight,
-                                backgroundColor: Color(.systemGray4)
-                            ) {
-                                focusManager.dismissNumberPad()
-                            }
-                        } else if row == 1 {
-                            NumberPadButton(
-                                title: "+",
-                                buttonHeight: buttonHeight,
-                                backgroundColor: Color(.systemGray4)
-                            ) {
-                                incrementValue()
-                            }
-                        } else {
-                            NumberPadButton(
-                                title: "-",
-                                buttonHeight: buttonHeight,
-                                backgroundColor: Color(.systemGray4)
-                            ) {
-                                decrementValue()
-                            }
-                        }
+                // Row 1: 1 2 3 Done
+                HStack(spacing: spacing) {
+                    KeyboardButton(title: "1", height: buttonHeight) {
+                        appendNumber("1")
+                    }
+                    KeyboardButton(title: "2", height: buttonHeight) {
+                        appendNumber("2")
+                    }
+                    KeyboardButton(title: "3", height: buttonHeight) {
+                        appendNumber("3")
+                    }
+                    KeyboardButton(
+                        title: "Done",
+                        systemImage: "chevron.down",
+                        height: buttonHeight,
+                        style: .secondary
+                    ) {
+                        focusManager.dismissNumberPad()
                     }
                 }
                 
-                // Last row
+                // Row 2: 4 5 6 +
                 HStack(spacing: spacing) {
-                    NumberPadButton(
+                    KeyboardButton(title: "4", height: buttonHeight) {
+                        appendNumber("4")
+                    }
+                    KeyboardButton(title: "5", height: buttonHeight) {
+                        appendNumber("5")
+                    }
+                    KeyboardButton(title: "6", height: buttonHeight) {
+                        appendNumber("6")
+                    }
+                    KeyboardButton(
+                        title: "+",
+                        height: buttonHeight,
+                        style: .secondary
+                    ) {
+                        incrementValue()
+                    }
+                }
+                
+                // Row 3: 7 8 9 -
+                HStack(spacing: spacing) {
+                    KeyboardButton(title: "7", height: buttonHeight) {
+                        appendNumber("7")
+                    }
+                    KeyboardButton(title: "8", height: buttonHeight) {
+                        appendNumber("8")
+                    }
+                    KeyboardButton(title: "9", height: buttonHeight) {
+                        appendNumber("9")
+                    }
+                    KeyboardButton(
+                        title: "-",
+                        height: buttonHeight,
+                        style: .secondary
+                    ) {
+                        decrementValue()
+                    }
+                }
+                
+                // Row 4: . 0 ⌫ Next
+                HStack(spacing: spacing) {
+                    KeyboardButton(
                         title: ".",
-                        buttonHeight: buttonHeight,
+                        height: buttonHeight,
                         isEnabled: allowsDecimal && !focusManager.currentValue.contains(".")
                     ) {
                         if allowsDecimal && !focusManager.currentValue.contains(".") {
@@ -94,29 +118,31 @@ struct CustomNumberPad: View {
                         }
                     }
                     
-                    NumberPadButton(title: "0", buttonHeight: buttonHeight) {
+                    KeyboardButton(title: "0", height: buttonHeight) {
                         appendNumber("0")
                     }
                     
-                    NumberPadButton(
+                    KeyboardButton(
                         systemImage: "delete.left",
-                        buttonHeight: buttonHeight
+                        height: buttonHeight,
+                        style: .secondary
                     ) {
                         deleteLastCharacter()
                     }
                     
-                    NumberPadButton(
+                    KeyboardButton(
                         title: "Next",
                         systemImage: "arrow.right",
-                        buttonHeight: buttonHeight,
-                        backgroundColor: Color.blue
+                        height: buttonHeight,
+                        style: .primary
                     ) {
                         onNext()
                     }
                 }
             }
+            .background(keyboardBackgroundColor)
         }
-        .background(backgroundColor)
+        .background(keyboardBackgroundColor)
     }
     
     private func appendNumber(_ digit: String) {
@@ -211,11 +237,38 @@ struct CustomNumberPad: View {
     }
 }
 
-struct NumberPadButton: View {
+// MARK: - Keyboard Button Styles
+enum KeyboardButtonStyle {
+    case primary
+    case secondary
+    case `default`
+    
+    var backgroundColor: Color {
+        switch self {
+        case .primary:
+            return Color(.systemBlue)
+        case .secondary:
+            return Color(.systemGray4)
+        case .default:
+            return Color(.systemBackground)
+        }
+    }
+    
+    var foregroundColor: Color {
+        switch self {
+        case .primary:
+            return .white
+        case .secondary, .default:
+            return .primary
+        }
+    }
+}
+
+struct KeyboardButton: View {
     let title: String?
     let systemImage: String?
-    let buttonHeight: CGFloat
-    let backgroundColor: Color
+    let height: CGFloat
+    let style: KeyboardButtonStyle
     let isEnabled: Bool
     let action: () -> Void
     
@@ -224,15 +277,15 @@ struct NumberPadButton: View {
     init(
         title: String? = nil,
         systemImage: String? = nil,
-        buttonHeight: CGFloat,
-        backgroundColor: Color = Color(.systemBackground),
+        height: CGFloat,
+        style: KeyboardButtonStyle = .default,
         isEnabled: Bool = true,
         action: @escaping () -> Void
     ) {
         self.title = title
         self.systemImage = systemImage
-        self.buttonHeight = buttonHeight
-        self.backgroundColor = backgroundColor
+        self.height = height
+        self.style = style
         self.isEnabled = isEnabled
         self.action = action
     }
@@ -240,44 +293,57 @@ struct NumberPadButton: View {
     var body: some View {
         Button(action: {
             if isEnabled {
-                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                impactFeedback.impactOccurred()
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 action()
             }
         }) {
-            HStack(spacing: 6) {
+            Group {
                 if let systemImage = systemImage {
                     Image(systemName: systemImage)
-                        .font(.system(size: 20, weight: .medium))
-                }
-                if let title = title {
+                        .font(.title2.weight(.regular))
+                } else if let title = title {
                     Text(title)
-                        .font(.system(size: 22, weight: .medium))
+                        .font(.title.weight(.regular))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .frame(height: buttonHeight)
-            .foregroundColor(isEnabled ? (backgroundColor == Color.blue ? .white : .primary) : .secondary)
-            .background(isEnabled ? backgroundColor : Color(.systemGray6))
-            .scaleEffect(isPressed ? AnimationConstants.buttonPressScale : 1.0)
-            .opacity(isPressed ? AnimationConstants.buttonPressOpacity : 1.0)
+            .frame(height: height)
+            .foregroundColor(isEnabled ? style.foregroundColor : .secondary)
+            .background(
+                Rectangle()
+                    .fill(isEnabled ? style.backgroundColor : Color(.systemGray5))
+                    .overlay(
+                        Rectangle()
+                            .stroke(Color(.separator), lineWidth: 0.33)
+                    )
+            )
+            .scaleEffect(isPressed ? 0.97 : 1.0)
         }
-        .buttonStyle(CustomButtonStyle(isPressed: $isPressed))
+        .buttonStyle(PlainButtonStyle())
         .disabled(!isEnabled)
-        .animation(AnimationConstants.quickAnimation, value: isPressed)
+        .onTouchDown { isPressed = true }
+        .onTouchUp { isPressed = false }
+        .animation(.easeInOut(duration: 0.1), value: isPressed)
     }
 }
 
-struct CustomButtonStyle: ButtonStyle {
-    @Binding var isPressed: Bool
+// MARK: - Touch Gesture Extensions
+extension View {
+    func onTouchDown(perform action: @escaping () -> Void) -> some View {
+        self.simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in action() }
+        )
+    }
     
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .onChange(of: configuration.isPressed) { _, newValue in
-                isPressed = newValue
-            }
+    func onTouchUp(perform action: @escaping () -> Void) -> some View {
+        self.simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onEnded { _ in action() }
+        )
     }
 }
+
 
 struct NumberInputField: View {
     @Binding var value: String

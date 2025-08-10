@@ -12,6 +12,7 @@ struct WorkoutSessionView: View {
     @Binding var isPresented: Bool
     @Environment(\.dismiss) private var dismiss
     @StateObject private var workoutManager = WorkoutManager.shared
+    @StateObject private var globalFocusManager = WorkoutInputFocusManager()
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @State private var startTime = Date()
@@ -80,6 +81,59 @@ struct WorkoutSessionView: View {
         }
     }
     
+    private func findNextGlobalInput() {
+        guard let currentInput = globalFocusManager.activeInput else { return }
+        
+        // Find the exercise that contains this input
+        guard let exercise = workoutManager.exercises.first(where: { $0.id == currentInput.exerciseId }) else { return }
+        
+        // Get all sets for current exercise
+        let sets = exercise.sets
+        
+        // Find current set index
+        guard let currentSetIndex = sets.firstIndex(where: { $0.id == currentInput.setId }) else { return }
+        
+        // If current input is weight, move to reps in same set
+        if currentInput.type == .weight {
+            let currentReps = sets[currentSetIndex].reps
+            let repsValue = currentReps > 0 ? "\(currentReps)" : "0"
+            globalFocusManager.activateInput(
+                InputIdentifier(exerciseId: currentInput.exerciseId, setId: currentInput.setId, type: .reps),
+                currentValue: repsValue
+            )
+        } else {
+            // Current input is reps, try to move to next set's weight
+            let nextSetIndex = currentSetIndex + 1
+            if nextSetIndex < sets.count {
+                let nextSet = sets[nextSetIndex]
+                let weightValue = nextSet.weight > 0 ? "\(Int(nextSet.weight))" : "0"
+                globalFocusManager.activateInput(
+                    InputIdentifier(exerciseId: currentInput.exerciseId, setId: nextSet.id, type: .weight),
+                    currentValue: weightValue
+                )
+            } else {
+                // No more sets in this exercise, try to find next exercise
+                if let exerciseIndex = workoutManager.exercises.firstIndex(where: { $0.id == exercise.id }) {
+                    let nextExerciseIndex = exerciseIndex + 1
+                    if nextExerciseIndex < workoutManager.exercises.count {
+                        // Move to first set of next exercise
+                        let nextExercise = workoutManager.exercises[nextExerciseIndex]
+                        if let firstSet = nextExercise.sets.first {
+                            let weightValue = firstSet.weight > 0 ? "\(Int(firstSet.weight))" : "0"
+                            globalFocusManager.activateInput(
+                                InputIdentifier(exerciseId: nextExercise.id, setId: firstSet.id, type: .weight),
+                                currentValue: weightValue
+                            )
+                        }
+                    } else {
+                        // No more exercises, dismiss keyboard
+                        globalFocusManager.dismissNumberPad()
+                    }
+                }
+            }
+        }
+    }
+
     private func handleDragEnded(draggedIndex: Int) {
         // Perform the reorder if we have a valid drop target
         if let draggedIndex = draggedExerciseIndex,
@@ -112,8 +166,9 @@ struct WorkoutSessionView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
                     // Header with title, timer, and notes
                     VStack(alignment: .leading, spacing: 16) {
                         // Editable title with edit button
@@ -206,11 +261,15 @@ struct WorkoutSessionView: View {
                                             dragOffset: $dragOffset
                                         )
                                     } else {
-                                        ExerciseCardView(workoutExercise: workoutExercise)
-                                            .transition(.asymmetric(
-                                                insertion: .opacity.combined(with: .move(edge: .bottom)),
-                                                removal: .opacity.combined(with: .scale)
-                                            ))
+                                        ExerciseCardView(
+                                            workoutExercise: workoutExercise,
+                                            focusManager: globalFocusManager
+                                        )
+                                        .id("exercise-\(workoutExercise.id)")
+                                        .transition(.asymmetric(
+                                            insertion: .opacity.combined(with: .move(edge: .bottom)),
+                                            removal: .opacity.combined(with: .scale)
+                                        ))
                                     }
                                 }
                                 .animation(AnimationConstants.smoothAnimation, value: isReorderingMode)
@@ -311,11 +370,23 @@ struct WorkoutSessionView: View {
                     .padding(.top, 16)
                     .padding(.bottom)
                 }
-            }
-            .scrollDisabled(isReorderingMode)
-            .onTapGesture {
-                // Dismiss keyboard when tapping empty space
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+                .scrollDisabled(isReorderingMode)
+                .onTapGesture {
+                    // Dismiss keyboard when tapping empty space
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+                .onChange(of: globalFocusManager.showingNumberPad) { _, isShowing in
+                    if isShowing, let activeInput = globalFocusManager.activeInput {
+                        // Delay slightly to ensure keyboard overlay is rendered
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            withAnimation(.easeOut(duration: 0.4)) {
+                                // Use UnitPoint to position content higher to account for keyboard
+                                proxy.scrollTo("exercise-\(activeInput.exerciseId)", anchor: UnitPoint(x: 0.5, y: 0.3))
+                            }
+                        }
+                    }
+                }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -404,6 +475,29 @@ struct WorkoutSessionView: View {
             }
         }
         .overlay {
+            // Global keyboard overlay
+            if globalFocusManager.showingNumberPad {
+                ZStack(alignment: .bottom) {
+                    // Dimming overlay
+                    Rectangle()
+                        .fill(.clear)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            globalFocusManager.dismissNumberPad()
+                        }
+                    
+                    CustomNumberPad(
+                        focusManager: globalFocusManager,
+                        onNext: {
+                            findNextGlobalInput()
+                        },
+                        onValueUpdate: { _ in }
+                    )
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .ignoresSafeArea(.keyboard, edges: .bottom)
+            }
+            
             if showingCancelConfirmation {
                 Color.black.opacity(0.3)
                     .ignoresSafeArea()

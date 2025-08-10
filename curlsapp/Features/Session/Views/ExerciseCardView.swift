@@ -9,42 +9,22 @@ import SwiftUI
 
 struct ExerciseCardView: View {
     @ObservedObject var workoutManager = WorkoutManager.shared
-    @StateObject private var focusManager = WorkoutInputFocusManager()
+    @ObservedObject var focusManager: WorkoutInputFocusManager
     let workoutExercise: WorkoutExercise
     
-    private func findNextInput() {
-        guard let currentInput = focusManager.activeInput else { return }
-        
-        // Get all sets for current exercise
-        let sets = workoutExercise.sets
-        
-        // Find current set index
-        guard let currentSetIndex = sets.firstIndex(where: { $0.id == currentInput.setId }) else { return }
-        
-        // If current input is weight, move to reps in same set
-        if currentInput.type == .weight {
-            let currentReps = sets[currentSetIndex].reps
-            let repsValue = currentReps > 0 ? "\(currentReps)" : "0"
-            focusManager.activateInput(
-                InputIdentifier(exerciseId: currentInput.exerciseId, setId: currentInput.setId, type: .reps),
-                currentValue: repsValue
-            )
-        } else {
-            // Current input is reps, try to move to next set's weight
-            let nextSetIndex = currentSetIndex + 1
-            if nextSetIndex < sets.count {
-                let nextSet = sets[nextSetIndex]
-                let weightValue = nextSet.weight > 0 ? "\(Int(nextSet.weight))" : "0"
-                focusManager.activateInput(
-                    InputIdentifier(exerciseId: currentInput.exerciseId, setId: nextSet.id, type: .weight),
-                    currentValue: weightValue
-                )
-            } else {
-                // No more sets, dismiss keyboard
-                focusManager.dismissNumberPad()
-            }
-        }
+    init(workoutExercise: WorkoutExercise, focusManager: WorkoutInputFocusManager) {
+        self.workoutExercise = workoutExercise
+        self.focusManager = focusManager
     }
+    
+    var body: some View {
+        cardContent
+    }
+    
+    private var cardContent: some View {
+        cardMainContent
+    }
+    
     
     private func clearPrefillData() {
         // Find the exercise in WorkoutManager and clear prefill data
@@ -57,7 +37,7 @@ struct ExerciseCardView: View {
         }
     }
     
-    var body: some View {
+    private var cardMainContent: some View {
         VStack(alignment: .leading, spacing: 10) {
             // Exercise title
             Text(workoutExercise.exercise.name)
@@ -152,25 +132,6 @@ struct ExerciseCardView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        .onTapGesture {
-            // Dismiss keyboard when tapping empty space
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        }
-        .sheet(isPresented: $focusManager.showingNumberPad) {
-            VStack {
-                CustomNumberPad(
-                    focusManager: focusManager,
-                    onNext: {
-                        findNextInput()
-                    },
-                    onValueUpdate: { _ in }
-                )
-            }
-            .presentationDetents([.height(340)])
-            .presentationDragIndicator(.visible)
-            .presentationCornerRadius(20)
-            .interactiveDismissDisabled()
-        }
     }
 }
 
