@@ -152,6 +152,10 @@ struct ExerciseCardView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
+        .onTapGesture {
+            // Dismiss keyboard when tapping empty space
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
         .sheet(isPresented: $focusManager.showingNumberPad) {
             VStack {
                 CustomNumberPad(

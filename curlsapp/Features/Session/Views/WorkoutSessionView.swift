@@ -313,6 +313,10 @@ struct WorkoutSessionView: View {
                 }
             }
             .scrollDisabled(isReorderingMode)
+            .onTapGesture {
+                // Dismiss keyboard when tapping empty space
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
