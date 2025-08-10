@@ -140,10 +140,6 @@ struct WorkoutGroupView: View {
                     AnimationConstants.smoothAnimation.delay(Double(index) * 0.05 + Double(workoutIndex) * 0.02),
                     value: showContent
                 )
-                .onTapGesture {
-                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                    impactFeedback.impactOccurred()
-                }
             }
         }
     }
