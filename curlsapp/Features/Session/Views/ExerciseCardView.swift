@@ -246,31 +246,13 @@ struct SetRowView: View {
     @State private var dragOffset: CGSize = .zero
     @State private var showingDeleteAction = false
     @State private var showingCompleteAction = false
-    @State private var checkmarkPressed = false
     @State private var checkmarkScale: CGFloat = 1.0
     
     var body: some View {
         ZStack {
             // Background actions
             HStack {
-                // Left side - Delete action
-                if showingDeleteAction {
-                    HStack {
-                        Image(systemName: "trash")
-                            .foregroundColor(.white)
-                            .font(.title2)
-                        Text("Delete")
-                            .foregroundColor(.white)
-                            .font(.headline)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 40)
-                    .background(Color.red)
-                }
-                
-                Spacer()
-                
-                // Right side - Complete action
+                // Left side - Complete action
                 if showingCompleteAction {
                     HStack {
                         Text(set.isCompleted ? "Undo" : "Complete")
@@ -284,7 +266,25 @@ struct SetRowView: View {
                     .frame(height: 40)
                     .background(Color.green)
                 }
+                
+                Spacer()
+                
+                // Right side - Delete action
+                if showingDeleteAction {
+                    HStack {
+                        Image(systemName: "trash")
+                            .foregroundColor(.white)
+                            .font(.title2)
+                        Text("Delete")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 40)
+                    .background(Color.red)
+                }
             }
+            .allowsHitTesting(false)
             
             // Main content
             ZStack {
@@ -356,24 +356,17 @@ struct SetRowView: View {
                             .font(.system(size: 20, weight: .medium))
                             .foregroundColor(set.isCompleted ? .green : .gray)
                             .scaleEffect(checkmarkScale)
-                            .animation(.none, value: checkmarkPressed) // Prevent automatic animation
+                            .animation(.none, value: checkmarkScale) // Prevent automatic animation
                     }
                     .frame(width: columnWidth * 0.1, alignment: .center)
-                    .scaleEffect(checkmarkPressed ? AnimationConstants.buttonPressScale : 1.0)
-                    .opacity(checkmarkPressed ? AnimationConstants.buttonPressOpacity : 1.0)
-                    .animation(AnimationConstants.quickAnimation, value: checkmarkPressed)
-                    .simultaneousGesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { _ in checkmarkPressed = true }
-                            .onEnded { _ in 
-                                checkmarkPressed = false
-                                handleCheckmarkTap()
-                            }
-                    )
+                    .onTapGesture {
+                        handleCheckmarkTap()
+                    }
                 }
             }
+            .contentShape(Rectangle())
             .offset(dragOffset)
-            .gesture(
+            .simultaneousGesture(
                 DragGesture()
                     .onChanged { gesture in
                         let translation = gesture.translation
@@ -384,11 +377,11 @@ struct SetRowView: View {
                             
                             // Show appropriate action based on drag direction
                             if translation.width < -50 {
-                                showingDeleteAction = true
-                                showingCompleteAction = false
-                            } else if translation.width > 50 {
                                 showingCompleteAction = true
                                 showingDeleteAction = false
+                            } else if translation.width > 50 {
+                                showingDeleteAction = true
+                                showingCompleteAction = false
                             } else {
                                 showingDeleteAction = false
                                 showingCompleteAction = false
@@ -401,13 +394,13 @@ struct SetRowView: View {
                         // Only handle horizontal swipes
                         if abs(translation.width) > abs(translation.height) {
                             if translation.width < -100 {
-                                // Left swipe - Delete
+                                // Left swipe - Toggle complete
+                                handleSwipeCompletion()
+                            } else if translation.width > 100 {
+                                // Right swipe - Delete
                                 let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
                                 impactFeedback.impactOccurred()
                                 workoutManager.deleteSet(exerciseId: exerciseId, setId: set.id)
-                            } else if translation.width > 100 {
-                                // Right swipe - Toggle complete
-                                handleSwipeCompletion()
                             }
                         }
                         
