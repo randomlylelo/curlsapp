@@ -29,14 +29,10 @@ struct HistoryView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack {
-                        Text("History")
-                            .font(.title)
-                            .fontWeight(.semibold)
-                        
-                        Spacer()
-                    }
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("History")
+                        .font(.title)
+                        .fontWeight(.semibold)
                 }
             }
             .onAppear {

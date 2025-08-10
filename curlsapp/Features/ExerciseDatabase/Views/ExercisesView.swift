@@ -191,23 +191,21 @@ struct ExercisesView: View {
                 await viewModel.refreshExercises()
             }
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack {
-                        Text("Exercises")
-                            .font(.title)
-                            .fontWeight(.semibold)
-                        
-                        Spacer()
-                        
-                        Button {
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                            impactFeedback.impactOccurred()
-                            showingAddExercise = true
-                        } label: {
-                            Image(systemName: "plus")
-                                .font(.headline)
-                                .foregroundColor(.blue)
-                        }
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("Exercises")
+                        .font(.title)
+                        .fontWeight(.semibold)
+                }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                        impactFeedback.impactOccurred()
+                        showingAddExercise = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.headline)
+                            .foregroundColor(.blue)
                     }
                 }
             }

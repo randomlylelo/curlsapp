@@ -91,14 +91,10 @@ struct WorkoutView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack {
-                        Text("Workout")
-                            .font(.title)
-                            .fontWeight(.semibold)
-                        
-                        Spacer()
-                    }
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("Workout")
+                        .font(.title)
+                        .fontWeight(.semibold)
                 }
             }
             .fullScreenCover(isPresented: $showingWorkoutSession) {
