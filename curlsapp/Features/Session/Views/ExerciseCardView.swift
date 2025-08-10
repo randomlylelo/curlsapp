@@ -46,12 +46,16 @@ struct ExerciseCardView: View {
     
     private var exerciseTitleSection: some View {
         HStack(alignment: .center, spacing: 12) {
-            // Exercise title - maintains visual prominence
-            Text(workoutExercise.exercise.name)
-                .font(.title3.weight(.semibold))
-                .foregroundColor(.primary)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            // Exercise title - maintains visual prominence with subtle tap interaction
+            NavigationLink(destination: ExerciseDetailView(exercise: workoutExercise.exercise)) {
+                Text(workoutExercise.exercise.name)
+                    .font(.title3.weight(.semibold))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(TappableExerciseTitleButtonStyle())
             
             // Always visible action icons
             HStack(spacing: 8) {
@@ -505,5 +509,16 @@ struct SetRowView: View {
         withAnimation(AnimationConstants.standardAnimation) {
             workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
         }
+    }
+}
+
+// Custom button style for exercise title tap interaction
+// Provides minimal, elegant feedback that doesn't compromise visual hierarchy
+struct TappableExerciseTitleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? 0.7 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(AnimationConstants.quickAnimation, value: configuration.isPressed)
     }
 }
