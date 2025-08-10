@@ -22,6 +22,7 @@ struct AddCustomExerciseView: View {
     @Environment(\.dismiss) private var dismiss
     private let exerciseService = ExerciseService()
     
+    
     let levels = ["beginner", "intermediate", "expert"]
     let categories = ["strength", "cardio", "stretching", "plyometrics"]
     let forces = ["push", "pull", "static"]
@@ -31,9 +32,9 @@ struct AddCustomExerciseView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 32) {
-                    // Required Section
+                    // Exercise Details
                     customSection(title: "Exercise Details") {
-                        customTextField("Exercise Name *", text: $exerciseName, isRequired: true)
+                        customTextField("Exercise Name", text: $exerciseName)
                     }
                     
                     // Optional Basic Info
@@ -107,7 +108,6 @@ struct AddCustomExerciseView: View {
                     customToolbarButton("Save", style: .save) {
                         saveCustomExercise()
                     }
-                    .disabled(exerciseName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
@@ -141,18 +141,17 @@ struct AddCustomExerciseView: View {
         }
     }
     
-    private func customTextField(_ placeholder: String, text: Binding<String>, isRequired: Bool = false) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            TextField(placeholder, text: text)
-                .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemBackground))
-                        .stroke(isRequired && text.wrappedValue.isEmpty ? Color.red.opacity(0.3) : Color.secondary.opacity(0.2), lineWidth: 1)
-                )
-                .font(.body)
-        }
+    private func customTextField(_ placeholder: String, text: Binding<String>) -> some View {
+        TextField(placeholder, text: text)
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.systemBackground))
+                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+            )
+            .font(.body)
     }
+    
     
     private func customPicker(_ title: String, selection: Binding<String>, options: [String]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -259,54 +258,55 @@ struct AddCustomExerciseView: View {
         HStack(spacing: 12) {
             TextField(placeholder, text: text)
                 .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemBackground))
-                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-                )
+                .background(fieldBackground)
             
             if canRemove {
-                Button(action: onRemove) {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.title3)
-                        .foregroundColor(.red)
-                }
+                removeButton(action: onRemove)
             }
+        }
+    }
+    
+    // Reusable components to reduce view complexity
+    private var fieldBackground: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color(.systemBackground))
+            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+    }
+    
+    private func removeButton(action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: "minus.circle.fill")
+                .font(.title3)
+                .foregroundColor(.red)
         }
     }
     
     private func customInstructionCard(step: Int, text: Binding<String>, canRemove: Bool, onRemove: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Step \(step)")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.accentColor)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(Color.accentColor.opacity(0.1))
-                    .clipShape(Capsule())
-                
+                stepLabel(step: step)
                 Spacer()
-                
                 if canRemove {
-                    Button(action: onRemove) {
-                        Image(systemName: "minus.circle.fill")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                    }
+                    removeButton(action: onRemove)
                 }
             }
             
             TextField("Instruction", text: text, axis: .vertical)
                 .lineLimit(2...6)
                 .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemBackground))
-                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-                )
+                .background(fieldBackground)
         }
+    }
+    
+    private func stepLabel(step: Int) -> some View {
+        Text("Step \(step)")
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundColor(.accentColor)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
+            .background(Color.accentColor.opacity(0.1))
+            .clipShape(Capsule())
     }
     
     private func customAddButton(_ title: String, action: @escaping () -> Void) -> some View {
