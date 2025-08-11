@@ -15,7 +15,6 @@ struct TemplateCard: View {
     let onDuplicate: () -> Void
     
     @State private var isPressed = false
-    @State private var isMenuPressed = false
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -71,53 +70,23 @@ struct TemplateCard: View {
             .buttonStyle(CustomPressedButtonStyle(isPressed: $isPressed))
             .animation(AnimationConstants.quickAnimation, value: isPressed)
             
-            // Separate menu button overlay
+            // Clean menu button - iOS native pattern
             Menu {
-                Button(action: {
-                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                    impactFeedback.impactOccurred()
-                    onEdit()
-                }) {
-                    Label("Edit Template", systemImage: "pencil")
-                }
-                
-                Button(action: {
-                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                    impactFeedback.impactOccurred()
-                    onDuplicate()
-                }) {
-                    Label("Duplicate Template", systemImage: "doc.on.doc")
-                }
-                
+                Button("Edit Template", systemImage: "pencil", action: onEdit)
+                Button("Duplicate Template", systemImage: "doc.on.doc", action: onDuplicate)
                 Divider()
-                
-                Button(role: .destructive, action: {
-                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                    impactFeedback.impactOccurred()
-                    onDelete()
-                }) {
-                    Label("Delete Template", systemImage: "trash")
-                }
+                Button("Delete Template", systemImage: "trash", role: .destructive, action: onDelete)
             } label: {
                 Image(systemName: "ellipsis")
-                    .font(.caption)
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.secondary)
-                    .frame(width: 44, height: 44)
+                    .frame(width: 20, height: 20)
                     .contentShape(Rectangle())
-                    .scaleEffect(isMenuPressed ? AnimationConstants.buttonPressScale : 1.0)
-                    .opacity(isMenuPressed ? AnimationConstants.buttonPressOpacity : 1.0)
             }
-            .offset(x: -4, y: 4)
-            .onTapGesture {
-                withAnimation(AnimationConstants.quickAnimation) {
-                    isMenuPressed = true
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    withAnimation(AnimationConstants.quickAnimation) {
-                        isMenuPressed = false
-                    }
-                }
-            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .padding(.top, 16)
+            .padding(.trailing, 16)
         }
     }
 }
