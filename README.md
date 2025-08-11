@@ -4,6 +4,16 @@ A privacy-first iOS workout loggin app. An watchOS integration coming soon.
 
 Testflight link: https://testflight.apple.com/join/mAfE5kJD
 
+## 📱 Screenshots
+
+| Workout Session | Exercise Database | History |
+|-----------------|-------------------|---------|
+| <img src="docs/screenshots/workout_session.PNG" width="250"> | <img src="docs/screenshots/exercise_database.PNG" width="250"> | <img src="docs/screenshots/history.PNG" width="250"> |
+
+| Body Diagram | Templates | Custom Exercise |
+|--------------|-----------|-----------------|
+| <img src="docs/screenshots/body_diagram.PNG" width="250"> | <img src="docs/screenshots/templates.PNG" width="250"> | <img src="docs/screenshots/custom_exercise.PNG" width="250"> |
+
 ## 🎯 Philosophy
 
 Built on the principle that fitness tracking should be simple, beautiful, and private. No accounts, no cloud syncing, no analytics tracking - just you and your workouts. All data stays on your device, giving you complete control over your fitness journey.
@@ -47,20 +57,6 @@ Built on the principle that fitness tracking should be simple, beautiful, and pr
 - **No Accounts**: No sign-up, no login, just open and start tracking
 - **Export Ready**: JSON-based storage format for easy data portability
 
-## 📱 Screenshots
-
-<details>
-<summary>View Screenshots</summary>
-
-| Workout Session | Exercise Database | History |
-|-----------------|-------------------|---------|
-| ![Workout](docs/screenshots/workout_session.png) | ![Exercises](docs/screenshots/exercise_database.png) | ![History](docs/screenshots/history.png) |
-
-| Body Diagram | Templates | Custom Exercise |
-|--------------|-----------|-----------------|
-| ![Body](docs/screenshots/body_diagram.png) | ![Templates](docs/screenshots/templates.png) | ![Custom](docs/screenshots/custom_exercise.png) |
-
-</details>
 
 ## 🛠 Technical Specifications
 
