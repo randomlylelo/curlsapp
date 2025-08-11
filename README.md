@@ -1,6 +1,8 @@
 # Curls App
 
-A privacy-first iOS workout tracking app designed with Steve Jobs' philosophy of simplicity in mind. Beautiful on the inside and outside, making fitness tracking accessible for beginners while powerful enough for experienced athletes. An watchOS integration coming soon.
+A privacy-first iOS workout loggin app. An watchOS integration coming soon.
+
+Testflight link: https://testflight.apple.com/join/mAfE5kJD
 
 ## 🎯 Philosophy
 
