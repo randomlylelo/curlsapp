@@ -78,132 +78,147 @@ class TemplateStorageService: ObservableObject {
     }
     
     private func createNewDefaultTemplates() {
+        // Push Day - Barbell focused
         let pushTemplate = WorkoutTemplate(
             name: "Push Day",
-            notes: "Chest, shoulders, and triceps workout",
+            notes: "Chest, shoulders, and triceps with barbell emphasis",
             exercises: [
                 TemplateExercise(
-                    exerciseId: "Dumbbell_Bench_Press",
-                    exerciseName: "Dumbbell Bench Press",
+                    exerciseId: "Barbell_Bench_Press_-_Medium_Grip",
+                    exerciseName: "Barbell Bench Press",
                     sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
+                        TemplateSet(weight: 135, reps: 5),
+                        TemplateSet(weight: 135, reps: 5),
+                        TemplateSet(weight: 135, reps: 5),
+                        TemplateSet(weight: 135, reps: 5)
                     ]
                 ),
                 TemplateExercise(
-                    exerciseId: "Seated_Dumbbell_Press",
-                    exerciseName: "Seated Dumbbell Press",
+                    exerciseId: "Barbell_Incline_Bench_Press_-_Medium_Grip",
+                    exerciseName: "Incline Barbell Bench Press",
                     sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
+                        TemplateSet(weight: 115, reps: 8),
+                        TemplateSet(weight: 115, reps: 8),
+                        TemplateSet(weight: 115, reps: 8)
+                    ]
+                ),
+                TemplateExercise(
+                    exerciseId: "Barbell_Shoulder_Press",
+                    exerciseName: "Barbell Shoulder Press",
+                    sets: [
+                        TemplateSet(weight: 95, reps: 8),
+                        TemplateSet(weight: 95, reps: 8),
+                        TemplateSet(weight: 95, reps: 8)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Close-Grip_Barbell_Bench_Press",
                     exerciseName: "Close-Grip Barbell Bench Press",
                     sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
-                    ]
-                ),
-                TemplateExercise(
-                    exerciseId: "Dumbbell_Flyes",
-                    exerciseName: "Dumbbell Flyes",
-                    sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
+                        TemplateSet(weight: 95, reps: 10),
+                        TemplateSet(weight: 95, reps: 10),
+                        TemplateSet(weight: 95, reps: 10)
                     ]
                 )
             ],
             isDefault: true
         )
         
+        // Pull Day - Barbell focused
         let pullTemplate = WorkoutTemplate(
             name: "Pull Day",
-            notes: "Back and biceps workout",
+            notes: "Back and biceps with barbell emphasis",
             exercises: [
                 TemplateExercise(
-                    exerciseId: "Pullups",
-                    exerciseName: "Pullups",
+                    exerciseId: "deadlift",
+                    exerciseName: "Deadlift",
                     sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
+                        TemplateSet(weight: 225, reps: 5),
+                        TemplateSet(weight: 225, reps: 5),
+                        TemplateSet(weight: 225, reps: 5)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Bent_Over_Barbell_Row",
                     exerciseName: "Bent Over Barbell Row",
                     sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
+                        TemplateSet(weight: 135, reps: 8),
+                        TemplateSet(weight: 135, reps: 8),
+                        TemplateSet(weight: 135, reps: 8),
+                        TemplateSet(weight: 135, reps: 8)
+                    ]
+                ),
+                TemplateExercise(
+                    exerciseId: "Barbell_Shrug",
+                    exerciseName: "Barbell Shrug",
+                    sets: [
+                        TemplateSet(weight: 185, reps: 12),
+                        TemplateSet(weight: 185, reps: 12),
+                        TemplateSet(weight: 185, reps: 12)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Barbell_Curl",
                     exerciseName: "Barbell Curl",
                     sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
-                    ]
-                ),
-                TemplateExercise(
-                    exerciseId: "Hammer_Curls",
-                    exerciseName: "Hammer Curls",
-                    sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
+                        TemplateSet(weight: 65, reps: 10),
+                        TemplateSet(weight: 65, reps: 10),
+                        TemplateSet(weight: 65, reps: 10)
                     ]
                 )
             ],
             isDefault: true
         )
         
+        // Leg Day - Barbell focused
         let legTemplate = WorkoutTemplate(
             name: "Leg Day",
-            notes: "Quadriceps, hamstrings, and glutes workout",
+            notes: "Complete leg workout with barbell emphasis",
             exercises: [
                 TemplateExercise(
                     exerciseId: "Barbell_Squat",
                     exerciseName: "Barbell Squat",
                     sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
+                        TemplateSet(weight: 185, reps: 5),
+                        TemplateSet(weight: 185, reps: 5),
+                        TemplateSet(weight: 185, reps: 5),
+                        TemplateSet(weight: 185, reps: 5)
                     ]
                 ),
                 TemplateExercise(
-                    exerciseId: "Stiff-Legged_Dumbbell_Deadlift",
-                    exerciseName: "Stiff-Legged Dumbbell Deadlift",
+                    exerciseId: "Stiff-Legged_Barbell_Deadlift",
+                    exerciseName: "Stiff-Legged Barbell Deadlift",
                     sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
+                        TemplateSet(weight: 135, reps: 8),
+                        TemplateSet(weight: 135, reps: 8),
+                        TemplateSet(weight: 135, reps: 8)
+                    ]
+                ),
+                TemplateExercise(
+                    exerciseId: "Front_Squat_Clean_Grip",
+                    exerciseName: "Front Squat (Clean Grip)",
+                    sets: [
+                        TemplateSet(weight: 115, reps: 8),
+                        TemplateSet(weight: 115, reps: 8),
+                        TemplateSet(weight: 115, reps: 8)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Barbell_Walking_Lunge",
                     exerciseName: "Barbell Walking Lunge",
                     sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
+                        TemplateSet(weight: 95, reps: 10),
+                        TemplateSet(weight: 95, reps: 10),
+                        TemplateSet(weight: 95, reps: 10)
                     ]
                 ),
                 TemplateExercise(
                     exerciseId: "Standing_Barbell_Calf_Raise",
                     exerciseName: "Standing Barbell Calf Raise",
                     sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
+                        TemplateSet(weight: 135, reps: 15),
+                        TemplateSet(weight: 135, reps: 15),
+                        TemplateSet(weight: 135, reps: 15)
                     ]
                 )
             ],
@@ -294,140 +309,8 @@ class TemplateStorageService: ObservableObject {
     private func createDefaultTemplatesIfNeeded() {
         guard templates.isEmpty else { return }
         
-        // Create some basic default templates
-        let pushTemplate = WorkoutTemplate(
-            name: "Push Day",
-            notes: "Chest, shoulders, and triceps workout",
-            exercises: [
-                TemplateExercise(
-                    exerciseId: "Dumbbell_Bench_Press",
-                    exerciseName: "Dumbbell Bench Press",
-                    sets: [
-                        TemplateSet(weight: 50, reps: 8),
-                        TemplateSet(weight: 50, reps: 8),
-                        TemplateSet(weight: 50, reps: 8)
-                    ]
-                ),
-                TemplateExercise(
-                    exerciseId: "Seated_Dumbbell_Press",
-                    exerciseName: "Seated Dumbbell Press",
-                    sets: [
-                        TemplateSet(weight: 30, reps: 8),
-                        TemplateSet(weight: 30, reps: 8),
-                        TemplateSet(weight: 30, reps: 8)
-                    ]
-                ),
-                TemplateExercise(
-                    exerciseId: "Close-Grip_Barbell_Bench_Press",
-                    exerciseName: "Close-Grip Barbell Bench Press",
-                    sets: [
-                        TemplateSet(weight: 95, reps: 8),
-                        TemplateSet(weight: 95, reps: 8),
-                        TemplateSet(weight: 95, reps: 8)
-                    ]
-                ),
-                TemplateExercise(
-                    exerciseId: "Dumbbell_Flyes",
-                    exerciseName: "Dumbbell Flyes",
-                    sets: [
-                        TemplateSet(weight: 25, reps: 10),
-                        TemplateSet(weight: 25, reps: 10),
-                        TemplateSet(weight: 25, reps: 10)
-                    ]
-                )
-            ],
-            isDefault: true
-        )
-        
-        let pullTemplate = WorkoutTemplate(
-            name: "Pull Day",
-            notes: "Back and biceps workout",
-            exercises: [
-                TemplateExercise(
-                    exerciseId: "Pullups",
-                    exerciseName: "Pullups",
-                    sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
-                    ]
-                ),
-                TemplateExercise(
-                    exerciseId: "Bent_Over_Barbell_Row",
-                    exerciseName: "Bent Over Barbell Row",
-                    sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
-                    ]
-                ),
-                TemplateExercise(
-                    exerciseId: "Barbell_Curl",
-                    exerciseName: "Barbell Curl",
-                    sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
-                    ]
-                ),
-                TemplateExercise(
-                    exerciseId: "Hammer_Curls",
-                    exerciseName: "Hammer Curls",
-                    sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
-                    ]
-                )
-            ],
-            isDefault: true
-        )
-        
-        let legTemplate = WorkoutTemplate(
-            name: "Leg Day",
-            notes: "Quadriceps, hamstrings, and glutes workout",
-            exercises: [
-                TemplateExercise(
-                    exerciseId: "Barbell_Squat",
-                    exerciseName: "Barbell Squat",
-                    sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
-                    ]
-                ),
-                TemplateExercise(
-                    exerciseId: "Stiff-Legged_Dumbbell_Deadlift",
-                    exerciseName: "Stiff-Legged Dumbbell Deadlift",
-                    sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
-                    ]
-                ),
-                TemplateExercise(
-                    exerciseId: "Barbell_Walking_Lunge",
-                    exerciseName: "Barbell Walking Lunge",
-                    sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
-                    ]
-                ),
-                TemplateExercise(
-                    exerciseId: "Standing_Barbell_Calf_Raise",
-                    exerciseName: "Standing Barbell Calf Raise",
-                    sets: [
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0),
-                        TemplateSet(weight: 0, reps: 0)
-                    ]
-                )
-            ],
-            isDefault: true
-        )
-        
-        templates = [pushTemplate, pullTemplate, legTemplate]
+        // Create comprehensive barbell-focused default templates
+        createNewDefaultTemplates()
         saveTemplates()
     }
 }
