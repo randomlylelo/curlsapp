@@ -255,7 +255,7 @@ struct WorkoutSessionView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                             .lineLimit(1...10)
                     }
-                    .padding()
+                    .padding(.horizontal)
                     
                     // Exercise list
                     if !workoutManager.exercises.isEmpty {
@@ -320,7 +320,7 @@ struct WorkoutSessionView: View {
                                 )
                             }
                         }
-                        .padding(.top, 8)
+                        .padding(.top, 0)
                         
                         // Drop zone indicator below last exercise
                         if let dropIndex = dropTargetIndex, dropIndex == workoutManager.exercises.count {
