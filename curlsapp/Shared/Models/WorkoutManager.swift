@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 // MARK: - Prefill Models
 struct PrefillSet {
@@ -28,7 +29,7 @@ struct WorkoutPrefillData {
 }
 
 // MARK: - Workout Models
-struct WorkoutSet: Identifiable {
+struct WorkoutSet: Identifiable, Codable {
     let id = UUID()
     var weight: Double = 0
     var reps: Int = 0
@@ -51,7 +52,7 @@ struct WorkoutSet: Identifiable {
     }
 }
 
-struct WorkoutExercise: Identifiable {
+struct WorkoutExercise: Identifiable, Codable, Transferable {
     let id = UUID()
     let exercise: Exercise
     var sets: [WorkoutSet] = [WorkoutSet()]
@@ -61,6 +62,11 @@ struct WorkoutExercise: Identifiable {
         self.exercise = exercise
         self.sets = [WorkoutSet()]
         self.notes = notes
+    }
+    
+    // MARK: - Transferable Conformance
+    static var transferRepresentation: some TransferRepresentation {
+        CodableRepresentation(contentType: .data)
     }
 }
 

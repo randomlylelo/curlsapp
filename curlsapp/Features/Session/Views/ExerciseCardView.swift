@@ -30,6 +30,13 @@ struct ExerciseCardView: View {
     
     private var cardContent: some View {
         cardMainContent
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(.systemGray4), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
     
     
@@ -131,12 +138,10 @@ struct ExerciseCardView: View {
             ), axis: .vertical)
             .textFieldStyle(.plain)
             .font(.subheadline)
-            .foregroundColor(.secondary)
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(Color(.systemGray6))
             .clipShape(RoundedRectangle(cornerRadius: 10))
-            .lineLimit(1...6)
             
             // Sets grid
             VStack(spacing: 4) {
@@ -228,6 +233,7 @@ struct ExerciseCardView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
+        
     }
 }
 
