@@ -130,7 +130,7 @@ struct ExerciseCardView: View {
             exerciseTitleSection
             
             // Notes input
-            TextField("Add a note...", text: .init(
+            TextField("Add a note...", text: Binding(
                 get: { workoutExercise.notes },
                 set: { newValue in
                     workoutManager.updateExerciseNotes(exerciseId: workoutExercise.id, notes: newValue)

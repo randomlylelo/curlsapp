@@ -26,6 +26,11 @@ struct WorkoutSessionView: View {
     // Native drag and drop state - simplified for better UX
     @State private var draggedExercise: WorkoutExercise?
     
+    private func saveNotesBeforeExit() {
+        // Notes are now automatically saved through direct binding
+        // No manual synchronization needed
+    }
+    
     private func getDefaultWorkoutTitle() -> String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
@@ -163,7 +168,12 @@ struct WorkoutSessionView: View {
             }
             
             // Notes field with native styling
-            TextField("Add notes...", text: $workoutManager.workoutNotes, axis: .vertical)
+            TextField("Add notes...", text: Binding(
+                get: { workoutManager.workoutNotes },
+                set: { newValue in
+                    workoutManager.workoutNotes = newValue
+                }
+            ), axis: .vertical)
                 .font(.body)
                 .textFieldStyle(.plain)
                 .padding(16)
@@ -242,6 +252,7 @@ struct WorkoutSessionView: View {
                 let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
                 impactFeedback.impactOccurred()
                 
+                saveNotesBeforeExit()
                 if let completedWorkout = workoutManager.createCompletedWorkout() {
                     completedWorkoutForTemplate = completedWorkout
                     showingSaveTemplateModal = true
@@ -374,6 +385,7 @@ struct WorkoutSessionView: View {
                                 notes: ""
                             )
                             
+                            saveNotesBeforeExit()
                             workoutManager.endWorkout()
                             isPresented = false
                             dismiss()
@@ -387,6 +399,7 @@ struct WorkoutSessionView: View {
                                 print("Failed to save workout: \(error)")
                             }
                             
+                            saveNotesBeforeExit()
                             workoutManager.endWorkout()
                             isPresented = false
                             dismiss()
@@ -400,6 +413,7 @@ struct WorkoutSessionView: View {
         // Native confirmation dialog instead of custom overlay
         .confirmationDialog("Cancel Workout", isPresented: $showingCancelConfirmation, titleVisibility: .visible) {
             Button("Cancel Workout", role: .destructive) {
+                saveNotesBeforeExit()
                 workoutManager.endWorkout()
                 isPresented = false
                 dismiss()
