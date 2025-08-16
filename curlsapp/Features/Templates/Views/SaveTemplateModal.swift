@@ -13,7 +13,6 @@ struct SaveTemplateModal: View {
     let onSave: (String, UUID?) -> Void
     let onSkip: () -> Void
     
-    @State private var templateName: String = ""
     @State private var showContent = false
     @ObservedObject private var templateStorage = TemplateStorageService.shared
     
@@ -22,110 +21,110 @@ struct SaveTemplateModal: View {
         return templateStorage.templates.first { $0.id == templateId }
     }
     
+    // Use workout title as template name
+    var templateName: String {
+        if let existingTemplate = existingTemplate {
+            return existingTemplate.name
+        } else {
+            return completedWorkout.title
+        }
+    }
+    
     init(completedWorkout: CompletedWorkout, templateId: UUID? = nil, onSave: @escaping (String, UUID?) -> Void, onSkip: @escaping () -> Void) {
         self.completedWorkout = completedWorkout
         self.templateId = templateId
         self.onSave = onSave
         self.onSkip = onSkip
-        
-        // Use existing template name if updating, otherwise use workout title
-        if let templateId = templateId,
-           let existingTemplate = TemplateStorageService.shared.templates.first(where: { $0.id == templateId }) {
-            self._templateName = State(initialValue: existingTemplate.name)
-        } else {
-            self._templateName = State(initialValue: "\(completedWorkout.title)")
-        }
     }
     
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 24) {
-                    // Header
-                    VStack(spacing: 8) {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                                .font(.title2)
-                            Text("Workout Complete")
-                                .font(.title2.weight(.semibold))
-                        }
-                        .scaleEffect(showContent ? 1 : 0.8)
-                        .opacity(showContent ? 1 : 0)
-                        .animation(
-                            AnimationConstants.gentleSpring.delay(0.1),
-                            value: showContent
-                        )
-                        
-                        Text("Great job finishing your workout!")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .opacity(showContent ? 1 : 0)
-                            .offset(y: showContent ? 0 : 10)
-                            .animation(
-                                AnimationConstants.smoothAnimation.delay(0.15),
-                                value: showContent
-                            )
+                VStack(spacing: 20) {
+                    // Compact Header
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                            .font(.title2)
+                        Text("Workout Complete")
+                            .font(.title2.weight(.semibold))
                     }
+                    .scaleEffect(showContent ? 1 : 0.8)
+                    .opacity(showContent ? 1 : 0)
+                    .animation(
+                        AnimationConstants.gentleSpring.delay(0.05),
+                        value: showContent
+                    )
                     
-                    // Summary Card
-                    VStack(spacing: 16) {
-                        // Workout title and duration
-                        VStack(spacing: 8) {
-                            Text(completedWorkout.title)
-                                .font(.headline)
-                                .multilineTextAlignment(.center)
+                    // Compact Summary Card - all stats in one place
+                    VStack(spacing: 12) {
+                        // Workout title
+                        Text(completedWorkout.title)
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                        
+                        // Combined stats line - duration and counts
+                        HStack(spacing: 20) {
+                            // Duration
+                            HStack(spacing: 4) {
+                                Image(systemName: "clock")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                Text(completedWorkout.formattedDuration)
+                                    .font(.subheadline.weight(.semibold))
+                            }
                             
-                            Text(completedWorkout.formattedDuration)
-                                .font(.title.weight(.semibold))
-                                .foregroundColor(.primary)
+                            Divider()
+                                .frame(height: 16)
+                            
+                            // Exercises
+                            HStack(spacing: 4) {
+                                Text("\(completedWorkout.exercises.count)")
+                                    .font(.subheadline.weight(.semibold))
+                                Text("exercises")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Divider()
+                                .frame(height: 16)
+                            
+                            // Sets
+                            HStack(spacing: 4) {
+                                Text("\(completedWorkout.totalSets)")
+                                    .font(.subheadline.weight(.semibold))
+                                Text("sets")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Divider()
+                                .frame(height: 16)
+                            
+                            // Volume
+                            HStack(spacing: 4) {
+                                Text("\(Int(completedWorkout.totalVolume))")
+                                    .font(.subheadline.weight(.semibold))
+                                Text("lbs")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
                         }
                         
-                        Divider()
-                        
-                        // Key stats
-                        HStack(spacing: 40) {
-                            StatView(title: "Exercises", value: "\(completedWorkout.exercises.count)")
-                                .opacity(showContent ? 1 : 0)
-                                .offset(y: showContent ? 0 : 20)
-                                .animation(
-                                    AnimationConstants.smoothAnimation.delay(0.25),
-                                    value: showContent
-                                )
-                            StatView(title: "Sets", value: "\(completedWorkout.totalSets)")
-                                .opacity(showContent ? 1 : 0)
-                                .offset(y: showContent ? 0 : 20)
-                                .animation(
-                                    AnimationConstants.smoothAnimation.delay(0.3),
-                                    value: showContent
-                                )
-                            StatView(title: "Volume", value: "\(Int(completedWorkout.totalVolume)) lbs")
-                                .opacity(showContent ? 1 : 0)
-                                .offset(y: showContent ? 0 : 20)
-                                .animation(
-                                    AnimationConstants.smoothAnimation.delay(0.35),
-                                    value: showContent
-                                )
-                        }
-                        
-                        // Exercise list
+                        // Exercise list - more compact
                         if !completedWorkout.exercises.isEmpty {
                             Divider()
                             
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Exercises")
-                                    .font(.subheadline.weight(.medium))
-                                    .foregroundColor(.secondary)
-                                
+                            VStack(alignment: .leading, spacing: 2) {
                                 ForEach(completedWorkout.exercises.prefix(3)) { exercise in
                                     Text("• \(exercise.exerciseName)")
-                                        .font(.subheadline)
+                                        .font(.caption)
                                         .foregroundColor(.primary)
                                 }
                                 
                                 if completedWorkout.exercises.count > 3 {
                                     Text("• +\(completedWorkout.exercises.count - 3) more")
-                                        .font(.subheadline)
+                                        .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
                             }
@@ -136,114 +135,86 @@ struct SaveTemplateModal: View {
                     .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .opacity(showContent ? 1 : 0)
-                    .offset(y: showContent ? 0 : 30)
+                    .offset(y: showContent ? 0 : 20)
                     .animation(
-                        AnimationConstants.gentleSpring.delay(0.2),
+                        AnimationConstants.gentleSpring.delay(0.1),
                         value: showContent
                     )
                     
-                    // Template save section
-                    VStack(spacing: 16) {
-                        VStack(spacing: 8) {
-                            Text(existingTemplate != nil ? "Update Template?" : "Save as Template?")
+                    // Action Buttons - Below summary
+                    VStack(spacing: 12) {
+                        Button(action: {
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                            impactFeedback.impactOccurred()
+                            onSave(templateName, templateId)
+                        }) {
+                            Text(existingTemplate != nil ? "Update Template" : "Save as Template")
                                 .font(.headline)
-                            
-                            Text(existingTemplate != nil ? 
-                                "Update your existing template with these new weights and reps." :
-                                "Save this workout as a template to easily repeat it later.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
+                        
+                        Button(action: {
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                            impactFeedback.impactOccurred()
+                            onSkip()
+                        }) {
+                            Text("Finish Without Saving")
+                                .font(.headline)
+                                .foregroundColor(.blue)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.clear)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.blue, lineWidth: 1)
+                                )
+                        }
+                    }
+                    .opacity(showContent ? 1 : 0)
+                    .animation(
+                        AnimationConstants.quickAnimation.delay(0.2),
+                        value: showContent
+                    )
+                    
+                    // Show comparison if updating existing template - MOVED DOWN
+                    if let existing = existingTemplate {
+                        VStack(spacing: 12) {
+                            HStack {
+                                Image(systemName: "arrow.up.arrow.down")
+                                    .foregroundColor(.orange)
+                                Text("Changes to \(existing.name)")
+                                    .font(.subheadline.weight(.medium))
+                            }
+                            
+                            VStack(spacing: 8) {
+                                ForEach(completedWorkout.exercises.prefix(3)) { completedExercise in
+                                    if let existingExercise = existing.exercises.first(where: { $0.exerciseId == completedExercise.exerciseId }) {
+                                        ComparisonRow(
+                                            exerciseName: completedExercise.exerciseName,
+                                            oldSets: existingExercise.sets,
+                                            newSets: completedExercise.sets
+                                        )
+                                    }
+                                }
+                                
+                                if completedWorkout.exercises.count > 3 {
+                                    Text("• +\(completedWorkout.exercises.count - 3) more exercises")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color(.systemOrange).opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                         .opacity(showContent ? 1 : 0)
                         .offset(y: showContent ? 0 : 20)
                         .animation(
                             AnimationConstants.smoothAnimation.delay(0.4),
-                            value: showContent
-                        )
-                        
-                        // Template name input
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Template Name")
-                                .font(.subheadline.weight(.medium))
-                                .foregroundColor(.secondary)
-                            
-                            TextField("Enter template name", text: $templateName)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.body)
-                        }
-                        
-                        // Show comparison if updating existing template
-                        if let existing = existingTemplate {
-                            VStack(spacing: 12) {
-                                HStack {
-                                    Image(systemName: "arrow.up.arrow.down")
-                                        .foregroundColor(.orange)
-                                    Text("Changes to \(existing.name)")
-                                        .font(.subheadline.weight(.medium))
-                                }
-                                
-                                VStack(spacing: 8) {
-                                    ForEach(completedWorkout.exercises.prefix(3)) { completedExercise in
-                                        if let existingExercise = existing.exercises.first(where: { $0.exerciseId == completedExercise.exerciseId }) {
-                                            ComparisonRow(
-                                                exerciseName: completedExercise.exerciseName,
-                                                oldSets: existingExercise.sets,
-                                                newSets: completedExercise.sets
-                                            )
-                                        }
-                                    }
-                                    
-                                    if completedWorkout.exercises.count > 3 {
-                                        Text("• +\(completedWorkout.exercises.count - 3) more exercises")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                            }
-                            .padding()
-                            .background(Color(.systemOrange).opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                        
-                        VStack(spacing: 12) {
-                            Button(action: {
-                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                                impactFeedback.impactOccurred()
-                                onSave(templateName, templateId)
-                            }) {
-                                Text(existingTemplate != nil ? "Update Template" : "Save as Template")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(templateName.isEmpty ? Color.gray : Color.blue)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                            }
-                            .disabled(templateName.isEmpty)
-                            .animation(AnimationConstants.quickAnimation, value: templateName.isEmpty)
-                            
-                            Button(action: {
-                                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                                impactFeedback.impactOccurred()
-                                onSkip()
-                            }) {
-                                Text("Finish Without Saving")
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.clear)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.blue, lineWidth: 1)
-                                    )
-                            }
-                        }
-                        .opacity(showContent ? 1 : 0)
-                        .offset(y: showContent ? 0 : 20)
-                        .animation(
-                            AnimationConstants.smoothAnimation.delay(0.5),
                             value: showContent
                         )
                     }
