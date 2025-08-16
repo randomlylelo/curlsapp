@@ -303,7 +303,7 @@ struct KeyboardButton: View {
         .disabled(!isEnabled)
         .onTouchDown { isPressed = true }
         .onTouchUp { isPressed = false }
-        .animation(.easeInOut(duration: 0.1), value: isPressed)
+        .animation(.none, value: isPressed)
     }
 }
 
@@ -340,12 +340,10 @@ struct NumberInputField: View {
     
     var body: some View {
         Button(action: {
-            withAnimation(AnimationConstants.quickAnimation) {
-                focusManager.activateInput(
-                    InputIdentifier(exerciseId: exerciseId, setId: setId, type: inputType),
-                    currentValue: value.isEmpty ? "0" : value
-                )
-            }
+            focusManager.activateInput(
+                InputIdentifier(exerciseId: exerciseId, setId: setId, type: inputType),
+                currentValue: value.isEmpty ? "0" : value
+            )
         }) {
             Text(value.isEmpty ? placeholder : value)
                 .font(.system(size: 16, weight: .medium))
@@ -360,14 +358,12 @@ struct NumberInputField: View {
                                 .stroke(isActive ? Color.blue : Color(.systemGray4), lineWidth: isActive ? 1.5 : 0.5)
                         )
                 )
-                .animation(AnimationConstants.quickAnimation, value: isActive)
+                .animation(.none, value: isActive)
         }
         .onChange(of: focusManager.currentValue) { _, newValue in
             if isActive {
-                withAnimation(AnimationConstants.quickAnimation) {
-                    value = newValue == "0" ? "" : newValue
-                    onValueChange(newValue)
-                }
+                value = newValue == "0" ? "" : newValue
+                onValueChange(newValue)
             }
         }
     }

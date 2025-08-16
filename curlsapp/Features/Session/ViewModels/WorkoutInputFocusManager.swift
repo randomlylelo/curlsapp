@@ -21,16 +21,10 @@ class WorkoutInputFocusManager: ObservableObject {
     }
     
     func dismissNumberPad() {
-        withAnimation(.easeOut(duration: 0.3)) {
-            self.showingNumberPad = false
-        }
-        
-        // Delay clearing state to allow animation to complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.activeInput = nil
-            self.currentValue = ""
-            self.shouldResetOnNextDigit = false
-        }
+        self.showingNumberPad = false
+        self.activeInput = nil
+        self.currentValue = ""
+        self.shouldResetOnNextDigit = false
     }
     
     func updateValue(_ newValue: String) {

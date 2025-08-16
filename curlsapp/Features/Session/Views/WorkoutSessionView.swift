@@ -109,18 +109,14 @@ struct WorkoutSessionView: View {
                             .font(.largeTitle.weight(.bold))
                             .textFieldStyle(.plain)
                             .onSubmit {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    isEditingTitle = false
-                                }
+                                isEditingTitle = false
                             }
                             .transition(.opacity)
                         
                         Button("Done") {
                             let impactFeedback = UIImpactFeedbackGenerator(style: .light)
                             impactFeedback.impactOccurred()
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                isEditingTitle = false
-                            }
+                            isEditingTitle = false
                         }
                         .font(.headline)
                         .foregroundStyle(.tint)
@@ -128,9 +124,7 @@ struct WorkoutSessionView: View {
                         .transition(.opacity)
                     } else {
                         Button(action: {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                isEditingTitle = true
-                            }
+                            isEditingTitle = true
                         }) {
                             HStack(spacing: 8) {
                                 Text(workoutManager.workoutTitle.isEmpty ? getDefaultWorkoutTitle() : workoutManager.workoutTitle)
@@ -161,7 +155,7 @@ struct WorkoutSessionView: View {
                     Text(formatTime(elapsedTime))
                         .font(.title2.weight(.semibold).monospacedDigit())
                         .foregroundStyle(.primary)
-                        .contentTransition(.numericText())
+                        .contentTransition(.identity)
                 }
                 .padding(.vertical, 8)
                 .padding(.horizontal, 16)
@@ -199,8 +193,8 @@ struct WorkoutSessionView: View {
                 )
                 .id("exercise-\(workoutExercise.id)")
                 .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .move(edge: .bottom)),
-                    removal: .opacity.combined(with: .scale(scale: 0.95))
+                    insertion: .opacity,
+                    removal: .opacity
                 ))
                 // Native drag and drop - simplified
                 .draggable(workoutExercise) {
@@ -216,9 +210,7 @@ struct WorkoutSessionView: View {
                         return false
                     }
                     
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        workoutManager.moveExercise(from: fromIndex, to: toIndex)
-                    }
+                    workoutManager.moveExercise(from: fromIndex, to: toIndex)
                     
                     let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
                     impactFeedback.impactOccurred()
@@ -302,9 +294,7 @@ struct WorkoutSessionView: View {
                 }
                 .onChange(of: globalFocusManager.showingNumberPad) { _, isShowing in
                     if isShowing, let activeInput = globalFocusManager.activeInput {
-                        withAnimation(.easeOut(duration: 0.3)) {
-                            proxy.scrollTo("exercise-\(activeInput.exerciseId)", anchor: .center)
-                        }
+                        proxy.scrollTo("exercise-\(activeInput.exerciseId)", anchor: .center)
                     }
                 }
             }
@@ -347,14 +337,12 @@ struct WorkoutSessionView: View {
         // Native sheet presentations
         .sheet(isPresented: $showingExerciseSelection) {
             ExerciseSelectionView(excludedExerciseIds: Set(workoutManager.exercises.map { $0.exercise.id })) { exercise in
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                    if let replaceId = exerciseToReplaceId {
-                        workoutManager.deleteExercise(exerciseId: replaceId)
-                        workoutManager.addExercise(exercise)
-                        exerciseToReplaceId = nil
-                    } else {
-                        workoutManager.addExercise(exercise)
-                    }
+                if let replaceId = exerciseToReplaceId {
+                    workoutManager.deleteExercise(exerciseId: replaceId)
+                    workoutManager.addExercise(exercise)
+                    exerciseToReplaceId = nil
+                } else {
+                    workoutManager.addExercise(exercise)
                 }
                 
                 let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -465,7 +453,7 @@ struct WorkoutSessionView: View {
                     )
                     .background(.regularMaterial, in: .rect(cornerRadii: .init(topLeading: 16, topTrailing: 16)))
                     .shadow(color: .black.opacity(0.1), radius: 10, y: -5)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(.identity)
                 }
                 .ignoresSafeArea(.keyboard, edges: .bottom)
             }

@@ -1,12 +1,18 @@
 import SwiftUI
 
 enum AnimationConstants {
-    // Quick interactions (button presses, taps)
-    static let quickDuration: Double = 0.2
+    // Instant feedback for input operations
+    static let instantDuration: Double = 0.0
+    static let noAnimation = Animation.easeInOut(duration: instantDuration)
+    static let instantFeedbackDuration: Double = 0.05
+    static let instantFeedback = Animation.easeInOut(duration: instantFeedbackDuration)
+    
+    // Quick interactions (button presses, taps) - reduced for faster response
+    static let quickDuration: Double = 0.1
     static let quickAnimation = Animation.easeInOut(duration: quickDuration)
     
-    // Standard transitions (navigation, modals)
-    static let standardDuration: Double = 0.3
+    // Standard transitions (navigation, modals) - slightly faster
+    static let standardDuration: Double = 0.15
     static let standardAnimation = Animation.easeInOut(duration: standardDuration)
     
     // Smooth transitions (lists, content changes)

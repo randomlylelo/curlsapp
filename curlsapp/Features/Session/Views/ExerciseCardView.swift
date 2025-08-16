@@ -78,9 +78,9 @@ struct ExerciseCardView: View {
                         .frame(width: 32, height: 32)
                         .contentShape(Rectangle())
                 }
-                .scaleEffect(replaceButtonPressed ? 0.9 : 1.0)
-                .opacity(replaceButtonPressed ? 0.6 : 1.0)
-                .animation(.easeInOut(duration: 0.1), value: replaceButtonPressed)
+                .scaleEffect(replaceButtonPressed ? 0.95 : 1.0)
+                .opacity(replaceButtonPressed ? 0.8 : 1.0)
+                .animation(.none, value: replaceButtonPressed)
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { _ in replaceButtonPressed = true }
@@ -99,9 +99,9 @@ struct ExerciseCardView: View {
                         .frame(width: 32, height: 32)
                         .contentShape(Rectangle())
                 }
-                .scaleEffect(deleteButtonPressed ? 0.9 : 1.0)
-                .opacity(deleteButtonPressed ? 0.6 : 1.0)
-                .animation(.easeInOut(duration: 0.1), value: deleteButtonPressed)
+                .scaleEffect(deleteButtonPressed ? 0.95 : 1.0)
+                .opacity(deleteButtonPressed ? 0.8 : 1.0)
+                .animation(.none, value: deleteButtonPressed)
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { _ in deleteButtonPressed = true }
@@ -193,10 +193,10 @@ struct ExerciseCardView: View {
                     }
                     .frame(height: 40)
                     .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .top).combined(with: .scale(scale: 0.95))),
-                        removal: .opacity.combined(with: .scale(scale: 0.95))
+                        insertion: .opacity,
+                        removal: .opacity
                     ))
-                    .animation(AnimationConstants.gentleSpring, value: workoutExercise.sets.count)
+                    .animation(.none, value: workoutExercise.sets.count)
                 }
             }
             
@@ -205,9 +205,7 @@ struct ExerciseCardView: View {
                 let impactFeedback = UIImpactFeedbackGenerator(style: .light)
                 impactFeedback.impactOccurred()
                 
-                withAnimation(AnimationConstants.gentleSpring) {
-                    workoutManager.addSet(to: workoutExercise.id)
-                }
+                workoutManager.addSet(to: workoutExercise.id)
             }) {
                 HStack {
                     Image(systemName: "plus.circle")
@@ -221,9 +219,9 @@ struct ExerciseCardView: View {
                 .background(Color(.systemGray5))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-            .scaleEffect(addSetButtonPressed ? AnimationConstants.buttonPressScale : 1.0)
-            .opacity(addSetButtonPressed ? AnimationConstants.buttonPressOpacity : 1.0)
-            .animation(AnimationConstants.quickAnimation, value: addSetButtonPressed)
+            .scaleEffect(addSetButtonPressed ? 0.98 : 1.0)
+            .opacity(addSetButtonPressed ? 0.9 : 1.0)
+            .animation(.none, value: addSetButtonPressed)
             .simultaneousGesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in addSetButtonPressed = true }
@@ -297,7 +295,7 @@ struct SetRowView: View {
                 // Background highlight for completed sets
                 Rectangle()
                     .fill(set.isCompleted ? Color.green.opacity(0.1) : Color(.systemBackground))
-                    .animation(AnimationConstants.standardAnimation, value: set.isCompleted)
+                    .animation(.none, value: set.isCompleted)
                 
                 // Content with exact proportions matching header: 0.1, 0.4, 0.2, 0.2, 0.1
                 HStack(spacing: 0) {
@@ -355,7 +353,7 @@ struct SetRowView: View {
                             .frame(width: 28, height: 28)
                             .scaleEffect(set.isCompleted ? 1.0 : 0.8)
                             .opacity(set.isCompleted ? 1.0 : 0.0)
-                            .animation(AnimationConstants.springAnimation, value: set.isCompleted)
+                            .animation(.none, value: set.isCompleted)
                         
                         // Main checkmark icon
                         Image(systemName: set.isCompleted ? "checkmark.square.fill" : "square")
@@ -410,12 +408,10 @@ struct SetRowView: View {
                             }
                         }
                         
-                        // Reset position and actions
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            dragOffset = .zero
-                            showingDeleteAction = false
-                            showingCompleteAction = false
-                        }
+                        // Reset position and actions instantly
+                        dragOffset = .zero
+                        showingDeleteAction = false
+                        showingCompleteAction = false
                     }
             )
         }
@@ -444,16 +440,10 @@ struct SetRowView: View {
             let impactFeedback = UIImpactFeedbackGenerator(style: .light)
             impactFeedback.impactOccurred()
             
-            // Primary completion animation
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                checkmarkScale = 1.3
-            }
-            
-            // Secondary bounce back
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    checkmarkScale = 1.0
-                }
+            // Instant visual feedback without animation
+            checkmarkScale = 1.1
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                checkmarkScale = 1.0
             }
             
             
@@ -469,9 +459,7 @@ struct SetRowView: View {
         }
         
         // Update the model
-        withAnimation(AnimationConstants.standardAnimation) {
-            workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
-        }
+        workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
     }
     
     private func handleSwipeCompletion() {
@@ -482,15 +470,10 @@ struct SetRowView: View {
             let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
             impactFeedback.impactOccurred()
             
-            // Quick celebration for swipe completion
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                checkmarkScale = 1.2
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
-                    checkmarkScale = 1.0
-                }
+            // Instant feedback for swipe completion
+            checkmarkScale = 1.1
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                checkmarkScale = 1.0
             }
             
             // Success haptic for swipe completion
@@ -505,9 +488,7 @@ struct SetRowView: View {
         }
         
         // Update the model
-        withAnimation(AnimationConstants.standardAnimation) {
-            workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
-        }
+        workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, isCompleted: !set.isCompleted)
     }
 }
 
@@ -518,6 +499,6 @@ struct TappableExerciseTitleButtonStyle: ButtonStyle {
         configuration.label
             .opacity(configuration.isPressed ? 0.7 : 1.0)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
-            .animation(AnimationConstants.quickAnimation, value: configuration.isPressed)
+            .animation(AnimationConstants.instantFeedback, value: configuration.isPressed)
     }
 }
