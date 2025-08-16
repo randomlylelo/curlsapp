@@ -22,6 +22,7 @@ struct WorkoutSessionView: View {
     @State private var showingSaveTemplateModal = false
     @State private var completedWorkoutForTemplate: CompletedWorkout?
     @State private var exerciseToReplaceId: UUID?
+    @State private var modalDismissedByButton = false
     
     // Native drag and drop state - simplified for better UX
     @State private var draggedExercise: WorkoutExercise?
@@ -365,12 +366,32 @@ struct WorkoutSessionView: View {
                 exerciseToReplaceId = nil
             }
         }
-        .sheet(isPresented: $showingSaveTemplateModal) {
+        .sheet(isPresented: $showingSaveTemplateModal, onDismiss: {
+            // When sheet is dismissed by tapping outside or swiping down,
+            // save the workout without creating a template
+            if !modalDismissedByButton, let completedWorkout = completedWorkoutForTemplate {
+                Task {
+                    do {
+                        try await WorkoutStorageService.shared.saveWorkout(completedWorkout)
+                    } catch {
+                        print("Failed to save workout: \(error)")
+                    }
+                    
+                    saveNotesBeforeExit()
+                    workoutManager.endWorkout()
+                    isPresented = false
+                }
+            }
+            // Reset the flag for next time
+            modalDismissedByButton = false
+            completedWorkoutForTemplate = nil
+        }) {
             if let completedWorkout = completedWorkoutForTemplate {
                 SaveTemplateModal(
                     completedWorkout: completedWorkout,
                     templateId: workoutManager.sourceTemplateId,
                     onSave: { templateName, templateId in
+                        modalDismissedByButton = true
                         Task {
                             do {
                                 try await WorkoutStorageService.shared.saveWorkout(completedWorkout)
@@ -392,6 +413,7 @@ struct WorkoutSessionView: View {
                         }
                     },
                     onSkip: {
+                        modalDismissedByButton = true
                         Task {
                             do {
                                 try await WorkoutStorageService.shared.saveWorkout(completedWorkout)
