@@ -340,6 +340,9 @@ struct NumberInputField: View {
     
     var body: some View {
         Button(action: {
+            // Dismiss any active system keyboard first
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            
             focusManager.activateInput(
                 InputIdentifier(exerciseId: exerciseId, setId: setId, type: inputType),
                 currentValue: value.isEmpty ? "0" : value

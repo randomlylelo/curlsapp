@@ -16,8 +16,12 @@ class WorkoutInputFocusManager: ObservableObject {
     func activateInput(_ identifier: InputIdentifier, currentValue: String) {
         self.activeInput = identifier
         self.currentValue = currentValue
-        self.showingNumberPad = true
         self.shouldResetOnNextDigit = true
+        
+        // Small delay to ensure system keyboard is dismissed before showing custom number pad
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.showingNumberPad = true
+        }
     }
     
     func dismissNumberPad() {
