@@ -224,9 +224,10 @@ class WorkoutManager: ObservableObject {
               let currentSetIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == setId }) else { return }
         
         let exercise = exercises[exerciseIndex]
+        let currentSet = exercise.sets[currentSetIndex]
         
-        // Only propagate if multiple sets and weight > 0
-        guard exercise.sets.count > 1, weight > 0 else { return }
+        // Only propagate if multiple sets, weight > 0, and current set is NOT completed
+        guard exercise.sets.count > 1, weight > 0, !currentSet.isCompleted else { return }
         
         // Propagate to all sets below the current one
         for setIndex in (currentSetIndex + 1)..<exercise.sets.count {
@@ -244,9 +245,10 @@ class WorkoutManager: ObservableObject {
               let currentSetIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == setId }) else { return }
         
         let exercise = exercises[exerciseIndex]
+        let currentSet = exercise.sets[currentSetIndex]
         
-        // Only propagate if multiple sets and reps > 0
-        guard exercise.sets.count > 1, reps > 0 else { return }
+        // Only propagate if multiple sets, reps > 0, and current set is NOT completed
+        guard exercise.sets.count > 1, reps > 0, !currentSet.isCompleted else { return }
         
         // Propagate to all sets below the current one
         for setIndex in (currentSetIndex + 1)..<exercise.sets.count {
