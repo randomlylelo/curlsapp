@@ -333,6 +333,6 @@ struct MultilineTextInputField: View {
             isFocused: $isFocused,
             onCommit: onCommit
         )
-        .frame(minHeight: 44)
+        .frame(minHeight: 22)
     }
 }
