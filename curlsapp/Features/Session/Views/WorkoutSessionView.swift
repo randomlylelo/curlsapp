@@ -13,6 +13,7 @@ struct WorkoutSessionView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var workoutManager = WorkoutManager.shared
     @StateObject private var globalFocusManager = WorkoutInputFocusManager()
+    @FocusState private var focusedField: WorkoutFocusField?
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @State private var startTime = Date()
@@ -44,58 +45,6 @@ struct WorkoutSessionView: View {
         }
     }
     
-    private func findNextGlobalInput() {
-        guard let currentInput = globalFocusManager.activeInput else { return }
-        
-        // Find the exercise that contains this input
-        guard let exercise = workoutManager.exercises.first(where: { $0.id == currentInput.exerciseId }) else { return }
-        
-        // Get all sets for current exercise
-        let sets = exercise.sets
-        
-        // Find current set index
-        guard let currentSetIndex = sets.firstIndex(where: { $0.id == currentInput.setId }) else { return }
-        
-        // If current input is weight, move to reps in same set
-        if currentInput.type == .weight {
-            let currentReps = sets[currentSetIndex].reps
-            let repsValue = currentReps > 0 ? "\(currentReps)" : "0"
-            globalFocusManager.activateInput(
-                InputIdentifier(exerciseId: currentInput.exerciseId, setId: currentInput.setId, type: .reps),
-                currentValue: repsValue
-            )
-        } else {
-            // Current input is reps, try to move to next set's weight
-            let nextSetIndex = currentSetIndex + 1
-            if nextSetIndex < sets.count {
-                let nextSet = sets[nextSetIndex]
-                let weightValue = nextSet.weight > 0 ? "\(Int(nextSet.weight))" : "0"
-                globalFocusManager.activateInput(
-                    InputIdentifier(exerciseId: currentInput.exerciseId, setId: nextSet.id, type: .weight),
-                    currentValue: weightValue
-                )
-            } else {
-                // No more sets in this exercise, try to find next exercise
-                if let exerciseIndex = workoutManager.exercises.firstIndex(where: { $0.id == exercise.id }) {
-                    let nextExerciseIndex = exerciseIndex + 1
-                    if nextExerciseIndex < workoutManager.exercises.count {
-                        // Move to first set of next exercise
-                        let nextExercise = workoutManager.exercises[nextExerciseIndex]
-                        if let firstSet = nextExercise.sets.first {
-                            let weightValue = firstSet.weight > 0 ? "\(Int(firstSet.weight))" : "0"
-                            globalFocusManager.activateInput(
-                                InputIdentifier(exerciseId: nextExercise.id, setId: firstSet.id, type: .weight),
-                                currentValue: weightValue
-                            )
-                        }
-                    } else {
-                        // No more exercises, dismiss keyboard
-                        globalFocusManager.dismissNumberPad()
-                    }
-                }
-            }
-        }
-    }
     
     // MARK: - View Components
     
@@ -186,6 +135,7 @@ struct WorkoutSessionView: View {
                 ExerciseCardView(
                     workoutExercise: workoutExercise,
                     focusManager: globalFocusManager,
+                    focusedField: $focusedField,
                     onReplaceExercise: {
                         exerciseToReplaceId = workoutExercise.id
                         showingExerciseSelection = true
@@ -290,10 +240,10 @@ struct WorkoutSessionView: View {
                 .scrollDismissesKeyboard(.interactively)
                 .onTapGesture {
                     // Dismiss keyboard when tapping empty space - native behavior
-                    globalFocusManager.dismissNumberPad()
+                    focusedField = nil
                 }
-                .onChange(of: globalFocusManager.showingNumberPad) { _, isShowing in
-                    if isShowing, let activeInput = globalFocusManager.activeInput {
+                .onChange(of: focusedField) { _, focusField in
+                    if let activeInput = globalFocusManager.activeInput {
                         proxy.scrollTo("exercise-\(activeInput.exerciseId)", anchor: .center)
                     }
                 }
@@ -433,31 +383,7 @@ struct WorkoutSessionView: View {
         } message: {
             Text("All progress will be lost.")
         }
-        // Enhanced custom number pad overlay with native feel
-        .overlay {
-            if globalFocusManager.showingNumberPad {
-                ZStack(alignment: .bottom) {
-                    Rectangle()
-                        .fill(.clear)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            globalFocusManager.dismissNumberPad()
-                        }
-                    
-                    CustomNumberPad(
-                        focusManager: globalFocusManager,
-                        onNext: {
-                            findNextGlobalInput()
-                        },
-                        onValueUpdate: { _ in }
-                    )
-                    .background(.regularMaterial, in: .rect(cornerRadii: .init(topLeading: 16, topTrailing: 16)))
-                    .shadow(color: .black.opacity(0.1), radius: 10, y: -5)
-                    .transition(.identity)
-                }
-                .ignoresSafeArea(.keyboard, edges: .bottom)
-            }
-        }
+        // Native iOS keyboard handling - no overlay needed
     }
 }
 

@@ -7,20 +7,28 @@
 
 import SwiftUI
 
+// Focus state for managing input focus
+enum WorkoutFocusField: Hashable {
+    case weight(exerciseId: UUID, setId: UUID)
+    case reps(exerciseId: UUID, setId: UUID)
+}
+
 struct ExerciseCardView: View {
     @ObservedObject var workoutManager = WorkoutManager.shared
     @ObservedObject var focusManager: WorkoutInputFocusManager
     let workoutExercise: WorkoutExercise
     let onReplaceExercise: () -> Void
+    @FocusState.Binding var focusedField: WorkoutFocusField?
     
     @State private var showingDeleteConfirmation = false
     @State private var replaceButtonPressed = false
     @State private var deleteButtonPressed = false
     @State private var addSetButtonPressed = false
     
-    init(workoutExercise: WorkoutExercise, focusManager: WorkoutInputFocusManager, onReplaceExercise: @escaping () -> Void) {
+    init(workoutExercise: WorkoutExercise, focusManager: WorkoutInputFocusManager, focusedField: FocusState<WorkoutFocusField?>.Binding, onReplaceExercise: @escaping () -> Void) {
         self.workoutExercise = workoutExercise
         self.focusManager = focusManager
+        self._focusedField = focusedField
         self.onReplaceExercise = onReplaceExercise
     }
     
@@ -188,7 +196,8 @@ struct ExerciseCardView: View {
                             set: set,
                             exerciseId: workoutExercise.id,
                             columnWidth: geometry.size.width,
-                            isLastSet: index == workoutExercise.sets.count - 1
+                            isLastSet: index == workoutExercise.sets.count - 1,
+                            focusedField: $focusedField
                         )
                     }
                     .frame(height: 40)
@@ -244,6 +253,7 @@ struct SetRowView: View {
     let exerciseId: UUID
     let columnWidth: CGFloat
     let isLastSet: Bool
+    @FocusState.Binding var focusedField: WorkoutFocusField?
     
     @State private var weightText: String = ""
     @State private var repsText: String = ""
@@ -251,6 +261,44 @@ struct SetRowView: View {
     @State private var showingDeleteAction = false
     @State private var showingCompleteAction = false
     @State private var checkmarkScale: CGFloat = 1.0
+    
+    private func findNextInput(from currentField: WorkoutFocusField) {
+        switch currentField {
+        case .weight(let exId, let setId):
+            // Move from weight to reps in same set
+            focusedField = .reps(exerciseId: exId, setId: setId)
+            focusManager.setActiveInput(InputIdentifier(exerciseId: exId, setId: setId, type: .reps))
+            
+        case .reps(let exId, let setId):
+            // Move from reps to next set's weight, or next exercise, or dismiss
+            guard let exercise = workoutManager.exercises.first(where: { $0.id == exId }) else { return }
+            guard let currentSetIndex = exercise.sets.firstIndex(where: { $0.id == setId }) else { return }
+            
+            let nextSetIndex = currentSetIndex + 1
+            if nextSetIndex < exercise.sets.count {
+                // Move to next set in same exercise
+                let nextSet = exercise.sets[nextSetIndex]
+                focusedField = .weight(exerciseId: exId, setId: nextSet.id)
+                focusManager.setActiveInput(InputIdentifier(exerciseId: exId, setId: nextSet.id, type: .weight))
+            } else {
+                // Move to next exercise or dismiss
+                guard let exerciseIndex = workoutManager.exercises.firstIndex(where: { $0.id == exId }) else { return }
+                let nextExerciseIndex = exerciseIndex + 1
+                
+                if nextExerciseIndex < workoutManager.exercises.count {
+                    let nextExercise = workoutManager.exercises[nextExerciseIndex]
+                    if let firstSet = nextExercise.sets.first {
+                        focusedField = .weight(exerciseId: nextExercise.id, setId: firstSet.id)
+                        focusManager.setActiveInput(InputIdentifier(exerciseId: nextExercise.id, setId: firstSet.id, type: .weight))
+                    }
+                } else {
+                    // No more inputs, dismiss keyboard
+                    focusedField = nil
+                    focusManager.setActiveInput(nil)
+                }
+            }
+        }
+    }
     
     var body: some View {
         ZStack {
@@ -323,10 +371,11 @@ struct SetRowView: View {
                                 workoutManager.updateSetWithWeightPropagation(exerciseId: exerciseId, setId: set.id, weight: weight)
                             }
                         },
-                        focusManager: focusManager
+                        onNext: { findNextInput(from: .weight(exerciseId: exerciseId, setId: set.id)) }
                     )
                     .frame(width: columnWidth * 0.2)
                     .padding(.trailing, 4)
+                    .focused($focusedField, equals: .weight(exerciseId: exerciseId, setId: set.id))
                     
                     // Reps input - 0.2 width  
                     NumberInputField(
@@ -340,10 +389,11 @@ struct SetRowView: View {
                                 workoutManager.updateSetWithRepsPropagation(exerciseId: exerciseId, setId: set.id, reps: reps)
                             }
                         },
-                        focusManager: focusManager
+                        onNext: { findNextInput(from: .reps(exerciseId: exerciseId, setId: set.id)) }
                     )
                     .frame(width: columnWidth * 0.2)
                     .padding(.leading, 4)
+                    .focused($focusedField, equals: .reps(exerciseId: exerciseId, setId: set.id))
                     
                     // Checkmark - 0.1 width
                     ZStack {
@@ -421,13 +471,24 @@ struct SetRowView: View {
             repsText = set.reps > 0 ? "\(set.reps)" : ""
         }
         .onChange(of: set.weight) { _, newWeight in
-            if focusManager.activeInput?.setId != set.id || focusManager.activeInput?.type != .weight {
+            if focusedField != .weight(exerciseId: exerciseId, setId: set.id) {
                 weightText = newWeight > 0 ? "\(Int(newWeight))" : ""
             }
         }
         .onChange(of: set.reps) { _, newReps in
-            if focusManager.activeInput?.setId != set.id || focusManager.activeInput?.type != .reps {
+            if focusedField != .reps(exerciseId: exerciseId, setId: set.id) {
                 repsText = newReps > 0 ? "\(newReps)" : ""
+            }
+        }
+        .onChange(of: focusedField) { _, newFocus in
+            // Update the focus manager when focus changes
+            switch newFocus {
+            case .weight(let exId, let setId):
+                focusManager.setActiveInput(InputIdentifier(exerciseId: exId, setId: setId, type: .weight))
+            case .reps(let exId, let setId):
+                focusManager.setActiveInput(InputIdentifier(exerciseId: exId, setId: setId, type: .reps))
+            case .none:
+                focusManager.setActiveInput(nil)
             }
         }
     }
