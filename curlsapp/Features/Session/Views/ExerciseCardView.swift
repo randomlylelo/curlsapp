@@ -138,14 +138,17 @@ struct ExerciseCardView: View {
             exerciseTitleSection
             
             // Notes input
-            TextField("Add a note...", text: Binding(
-                get: { workoutExercise.notes },
-                set: { newValue in
-                    workoutManager.updateExerciseNotes(exerciseId: workoutExercise.id, notes: newValue)
-                }
-            ), axis: .vertical)
-            .textFieldStyle(.plain)
-            .font(.subheadline)
+            MultilineTextInputField(
+                "Add a note...",
+                text: Binding(
+                    get: { workoutExercise.notes },
+                    set: { newValue in
+                        workoutManager.updateExerciseNotes(exerciseId: workoutExercise.id, notes: newValue)
+                    }
+                ),
+                maxLines: 3,
+                font: .subheadline
+            )
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(Color(.systemGray6))

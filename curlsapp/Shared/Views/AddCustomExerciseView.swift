@@ -142,14 +142,17 @@ struct AddCustomExerciseView: View {
     }
     
     private func customTextField(_ placeholder: String, text: Binding<String>) -> some View {
-        TextField(placeholder, text: text)
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.systemBackground))
-                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-            )
-            .font(.body)
+        TextInputField(
+            placeholder,
+            text: text,
+            font: .body
+        )
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+        )
     }
     
     
@@ -256,9 +259,13 @@ struct AddCustomExerciseView: View {
     
     private func customDynamicField(placeholder: String, text: Binding<String>, canRemove: Bool, onRemove: @escaping () -> Void) -> some View {
         HStack(spacing: 12) {
-            TextField(placeholder, text: text)
-                .padding(16)
-                .background(fieldBackground)
+            TextInputField(
+                placeholder,
+                text: text,
+                font: .body
+            )
+            .padding(16)
+            .background(fieldBackground)
             
             if canRemove {
                 removeButton(action: onRemove)
@@ -291,10 +298,14 @@ struct AddCustomExerciseView: View {
                 }
             }
             
-            TextField("Instruction", text: text, axis: .vertical)
-                .lineLimit(2...6)
-                .padding(16)
-                .background(fieldBackground)
+            MultilineTextInputField(
+                "Instruction",
+                text: text,
+                maxLines: 6,
+                font: .body
+            )
+            .padding(16)
+            .background(fieldBackground)
         }
     }
     

@@ -167,14 +167,15 @@ struct TemplateEditorView: View {
                         // Editable title with edit button
                         HStack {
                             if isEditingTitle {
-                                TextField(getDefaultTemplateName(), text: $templateName)
-                                    .font(.title.weight(.semibold))
-                                    .textFieldStyle(PlainTextFieldStyle())
-                                    .onSubmit {
-                                        withAnimation(AnimationConstants.standardAnimation) {
-                                            isEditingTitle = false
-                                        }
+                                TextInputField(
+                                    getDefaultTemplateName(),
+                                    text: $templateName,
+                                    font: .title.weight(.semibold)
+                                ) {
+                                    withAnimation(AnimationConstants.standardAnimation) {
+                                        isEditingTitle = false
                                     }
+                                }
                                     .transition(.asymmetric(
                                         insertion: .opacity.combined(with: .scale(scale: 0.95)),
                                         removal: .opacity
@@ -215,8 +216,11 @@ struct TemplateEditorView: View {
                         }
                         
                         // Single line notes
-                        TextField("Add notes...", text: $templateNotes)
-                            .textFieldStyle(PlainTextFieldStyle())
+                        TextInputField(
+                            "Add notes...",
+                            text: $templateNotes,
+                            font: .body
+                        )
                     }
                     .padding()
                     

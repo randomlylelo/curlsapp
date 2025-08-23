@@ -54,12 +54,13 @@ struct WorkoutSessionView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     if isEditingTitle {
-                        TextField(getDefaultWorkoutTitle(), text: $workoutManager.workoutTitle)
-                            .font(.largeTitle.weight(.bold))
-                            .textFieldStyle(.plain)
-                            .onSubmit {
-                                isEditingTitle = false
-                            }
+                        TextInputField(
+                            getDefaultWorkoutTitle(),
+                            text: $workoutManager.workoutTitle,
+                            font: .largeTitle.weight(.bold)
+                        ) {
+                            isEditingTitle = false
+                        }
                             .transition(.opacity)
                         
                         Button("Done") {
@@ -112,17 +113,19 @@ struct WorkoutSessionView: View {
             }
             
             // Notes field with native styling
-            TextField("Add notes...", text: Binding(
-                get: { workoutManager.workoutNotes },
-                set: { newValue in
-                    workoutManager.workoutNotes = newValue
-                }
-            ), axis: .vertical)
-                .font(.body)
-                .textFieldStyle(.plain)
-                .padding(16)
-                .background(.regularMaterial, in: .rect(cornerRadius: 12))
-                .lineLimit(1...6)
+            MultilineTextInputField(
+                "Add notes...",
+                text: Binding(
+                    get: { workoutManager.workoutNotes },
+                    set: { newValue in
+                        workoutManager.workoutNotes = newValue
+                    }
+                ),
+                maxLines: 6,
+                font: .body
+            )
+            .padding(16)
+            .background(.regularMaterial, in: .rect(cornerRadius: 12))
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
