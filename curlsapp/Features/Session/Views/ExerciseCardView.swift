@@ -146,7 +146,6 @@ struct ExerciseCardView: View {
                         workoutManager.updateExerciseNotes(exerciseId: workoutExercise.id, notes: newValue)
                     }
                 ),
-                maxLines: 3,
                 font: .subheadline
             )
             .padding(.horizontal, 12)

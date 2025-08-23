@@ -90,7 +90,7 @@ struct NativeTextInputField: UIViewRepresentable {
         textView.delegate = context.coordinator
         textView.font = font
         textView.backgroundColor = UIColor.clear
-        textView.isScrollEnabled = maxLines != nil
+        textView.isScrollEnabled = false
         textView.textContainer.lineFragmentPadding = 0
         textView.textContainerInset = .zero
         textView.showsVerticalScrollIndicator = false

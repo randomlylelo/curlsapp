@@ -121,7 +121,6 @@ struct WorkoutSessionView: View {
                         workoutManager.workoutNotes = newValue
                     }
                 ),
-                maxLines: 6,
                 font: .body
             )
             .padding(16)

@@ -301,7 +301,6 @@ struct AddCustomExerciseView: View {
             MultilineTextInputField(
                 "Instruction",
                 text: text,
-                maxLines: 6,
                 font: .body
             )
             .padding(16)
