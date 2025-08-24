@@ -36,19 +36,13 @@ struct WorkoutSet: Identifiable, Codable {
     var isCompleted: Bool = false
     var previousWeight: Double = 0
     var previousReps: Int = 0
-    var isPrefilled: Bool = false
-    var prefilledWeight: Double = 0
-    var prefilledReps: Int = 0
     
-    init(weight: Double = 0, reps: Int = 0, isCompleted: Bool = false, previousWeight: Double = 0, previousReps: Int = 0, isPrefilled: Bool = false, prefilledWeight: Double = 0, prefilledReps: Int = 0) {
+    init(weight: Double = 0, reps: Int = 0, isCompleted: Bool = false, previousWeight: Double = 0, previousReps: Int = 0) {
         self.weight = weight
         self.reps = reps
         self.isCompleted = isCompleted
         self.previousWeight = previousWeight
         self.previousReps = previousReps
-        self.isPrefilled = isPrefilled
-        self.prefilledWeight = prefilledWeight
-        self.prefilledReps = prefilledReps
     }
 }
 
@@ -128,10 +122,7 @@ class WorkoutManager: ObservableObject {
                         weight: prefillSet.weight,
                         reps: prefillSet.reps,
                         previousWeight: prefillSet.weight,
-                        previousReps: prefillSet.reps,
-                        isPrefilled: true,
-                        prefilledWeight: prefillSet.weight,
-                        prefilledReps: prefillSet.reps
+                        previousReps: prefillSet.reps
                     )
                 }
                 
@@ -170,10 +161,7 @@ class WorkoutManager: ObservableObject {
                         weight: templateSet.weight,
                         reps: templateSet.reps,
                         previousWeight: templateSet.weight,
-                        previousReps: templateSet.reps,
-                        isPrefilled: true,
-                        prefilledWeight: templateSet.weight,
-                        prefilledReps: templateSet.reps
+                        previousReps: templateSet.reps
                     )
                 }
                 
@@ -198,11 +186,6 @@ class WorkoutManager: ObservableObject {
         if let exerciseIndex = exercises.firstIndex(where: { $0.id == exerciseId }),
            let setIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == setId }) {
             
-            // If user modifies weight or reps, remove prefilled state
-            if weight != nil || reps != nil {
-                exercises[exerciseIndex].sets[setIndex].isPrefilled = false
-            }
-            
             if let weight = weight {
                 exercises[exerciseIndex].sets[setIndex].weight = weight
             }
@@ -215,47 +198,6 @@ class WorkoutManager: ObservableObject {
         }
     }
     
-    func updateSetWithWeightPropagation(exerciseId: UUID, setId: UUID, weight: Double) {
-        // Update the specific set first
-        updateSet(exerciseId: exerciseId, setId: setId, weight: weight)
-        
-        // Find the exercise and current set index
-        guard let exerciseIndex = exercises.firstIndex(where: { $0.id == exerciseId }),
-              let currentSetIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == setId }) else { return }
-        
-        let exercise = exercises[exerciseIndex]
-        let currentSet = exercise.sets[currentSetIndex]
-        
-        // Only propagate if multiple sets, weight > 0, and current set is NOT completed
-        guard exercise.sets.count > 1, weight > 0, !currentSet.isCompleted else { return }
-        
-        // Propagate to all sets below the current one
-        for setIndex in (currentSetIndex + 1)..<exercise.sets.count {
-            exercises[exerciseIndex].sets[setIndex].weight = weight
-            exercises[exerciseIndex].sets[setIndex].isPrefilled = false
-        }
-    }
-    
-    func updateSetWithRepsPropagation(exerciseId: UUID, setId: UUID, reps: Int) {
-        // Update the specific set first
-        updateSet(exerciseId: exerciseId, setId: setId, reps: reps)
-        
-        // Find the exercise and current set index
-        guard let exerciseIndex = exercises.firstIndex(where: { $0.id == exerciseId }),
-              let currentSetIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == setId }) else { return }
-        
-        let exercise = exercises[exerciseIndex]
-        let currentSet = exercise.sets[currentSetIndex]
-        
-        // Only propagate if multiple sets, reps > 0, and current set is NOT completed
-        guard exercise.sets.count > 1, reps > 0, !currentSet.isCompleted else { return }
-        
-        // Propagate to all sets below the current one
-        for setIndex in (currentSetIndex + 1)..<exercise.sets.count {
-            exercises[exerciseIndex].sets[setIndex].reps = reps
-            exercises[exerciseIndex].sets[setIndex].isPrefilled = false
-        }
-    }
     
     func deleteSet(exerciseId: UUID, setId: UUID) {
         if let exerciseIndex = exercises.firstIndex(where: { $0.id == exerciseId }),

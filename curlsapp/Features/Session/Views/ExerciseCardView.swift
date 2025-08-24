@@ -49,10 +49,9 @@ struct ExerciseCardView: View {
     
     
     private func clearPrefillData() {
-        // Find the exercise in WorkoutManager and clear prefill data
+        // Clear all sets data
         if let exerciseIndex = workoutManager.exercises.firstIndex(where: { $0.id == workoutExercise.id }) {
             for setIndex in workoutManager.exercises[exerciseIndex].sets.indices {
-                workoutManager.exercises[exerciseIndex].sets[setIndex].isPrefilled = false
                 workoutManager.exercises[exerciseIndex].sets[setIndex].weight = 0
                 workoutManager.exercises[exerciseIndex].sets[setIndex].reps = 0
             }
@@ -370,7 +369,7 @@ struct SetRowView: View {
                         setId: set.id,
                         onValueChange: { newValue in
                             if let weight = Double(newValue) {
-                                workoutManager.updateSetWithWeightPropagation(exerciseId: exerciseId, setId: set.id, weight: weight)
+                                workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, weight: weight)
                             }
                         },
                         onNext: { findNextInput(from: .weight(exerciseId: exerciseId, setId: set.id)) }
@@ -388,7 +387,7 @@ struct SetRowView: View {
                         setId: set.id,
                         onValueChange: { newValue in
                             if let reps = Int(newValue) {
-                                workoutManager.updateSetWithRepsPropagation(exerciseId: exerciseId, setId: set.id, reps: reps)
+                                workoutManager.updateSet(exerciseId: exerciseId, setId: set.id, reps: reps)
                             }
                         },
                         onNext: { findNextInput(from: .reps(exerciseId: exerciseId, setId: set.id)) }
