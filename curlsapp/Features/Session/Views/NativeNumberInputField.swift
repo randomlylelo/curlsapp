@@ -118,7 +118,7 @@ struct NativeNumberInputField: UIViewRepresentable {
             // Handle empty string (deletion)
             if newText.isEmpty {
                 updateValue("")
-                return true
+                return false
             }
             
             // For weight fields, allow decimal points
@@ -145,7 +145,7 @@ struct NativeNumberInputField: UIViewRepresentable {
                 }
                 
                 updateValue(newText)
-                return true
+                return false
             } else {
                 // For reps, only allow integers
                 let allowedCharacters = CharacterSet.decimalDigits
@@ -156,7 +156,7 @@ struct NativeNumberInputField: UIViewRepresentable {
                 }
                 
                 updateValue(newText)
-                return true
+                return false
             }
         }
         
