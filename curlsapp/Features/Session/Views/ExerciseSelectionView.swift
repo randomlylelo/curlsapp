@@ -57,13 +57,6 @@ struct ExerciseSelectionView: View {
                 ExerciseDetailView(exercise: exercise)
             }
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        showingAddCustomExercise = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Cancel") {
                         dismiss()
@@ -84,6 +77,7 @@ struct ExerciseSelectionView: View {
     private var mainContentView: some View {
         VStack(spacing: 0) {
             muscleGroupFilters
+            addNewExerciseButton
             exercisesList
             addExercisesButton
         }
@@ -109,6 +103,31 @@ struct ExerciseSelectionView: View {
         .padding(.horizontal)
         .padding(.top, 0)
         .padding(.bottom, 10)
+    }
+    
+    private var addNewExerciseButton: some View {
+        Button {
+            showingAddCustomExercise = true
+        } label: {
+            HStack {
+                Image(systemName: "plus")
+                Text("New Exercise")
+            }
+            .font(.headline)
+            .foregroundColor(.accentColor)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.accentColor.opacity(0.1))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
+                    )
+            )
+        }
+        .padding(.horizontal)
+        .padding(.bottom, 12)
     }
     
     private var exercisesList: some View {

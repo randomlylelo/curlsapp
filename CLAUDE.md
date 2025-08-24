@@ -1,6 +1,7 @@
 - Whenever you finish a task make sure to build the project, if it fails to build, iterate until it works.
 - When testing using xcodebuild use iPhone16
 - When designing and coding keep the principal of Steve Job's simplicity in mind. the product should be simple and beautiful inside and outside.
+- If any instructions are unclear or there are some edge cases that I yet to consider when I write it in the prompt, ask the question before implementing.
 
 # Project Architecture & Design Philosophy
 
