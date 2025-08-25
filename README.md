@@ -2,6 +2,8 @@
 
 A privacy-first iOS workout logging app. An watchOS integration coming soon.
 
+App Store link: https://apps.apple.com/app/curls-workout-tracker/id6749772550
+
 Testflight link: https://testflight.apple.com/join/mAfE5kJD
 
 ## 📱 Screenshots
