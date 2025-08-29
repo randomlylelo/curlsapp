@@ -1,6 +1,8 @@
 # Curls App
 
-A privacy-first iOS workout loggin app. An watchOS integration coming soon.
+A privacy-first iOS workout logging app. An watchOS integration coming soon.
+
+App Store link: https://apps.apple.com/app/curls-workout-tracker/id6749772550
 
 Testflight link: https://testflight.apple.com/join/mAfE5kJD
 
@@ -13,10 +15,6 @@ Testflight link: https://testflight.apple.com/join/mAfE5kJD
 | Body Diagram | Templates | Custom Exercise |
 |--------------|-----------|-----------------|
 | <img src="docs/screenshots/body_diagram.PNG" width="250"> | <img src="docs/screenshots/templates.PNG" width="250"> | <img src="docs/screenshots/custom_exercise.PNG" width="250"> |
-
-## 🎯 Philosophy
-
-Built on the principle that fitness tracking should be simple, beautiful, and private. No accounts, no cloud syncing, no analytics tracking - just you and your workouts. All data stays on your device, giving you complete control over your fitness journey.
 
 ## ✨ Features
 
