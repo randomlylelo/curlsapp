@@ -13,12 +13,14 @@ struct TemplateCard: View {
     let onEdit: () -> Void
     let onDelete: () -> Void
     let onDuplicate: () -> Void
+    let isDisabled: Bool
     
     @State private var isPressed = false
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Button(action: {
+                guard !isDisabled else { return }
                 let impactFeedback = UIImpactFeedbackGenerator(style: .light)
                 impactFeedback.impactOccurred()
                 onTap()
@@ -85,6 +87,7 @@ struct TemplateCard: View {
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
+            .disabled(isDisabled)
             .padding(.top, 16)
             .padding(.trailing, 16)
         }

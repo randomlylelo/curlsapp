@@ -60,6 +60,19 @@ class TemplateStorageService: ObservableObject {
         saveTemplates()
     }
     
+    func reorderTemplate(from sourceIndex: Int, to destinationIndex: Int) {
+        guard sourceIndex != destinationIndex,
+              sourceIndex >= 0, sourceIndex < templates.count,
+              destinationIndex >= 0, destinationIndex < templates.count else {
+            return
+        }
+        
+        let template = templates[sourceIndex]
+        templates.remove(at: sourceIndex)
+        templates.insert(template, at: destinationIndex)
+        saveTemplates()
+    }
+    
     func updateLastUsedDate(for templateId: UUID) {
         if let index = templates.firstIndex(where: { $0.id == templateId }) {
             templates[index].lastUsedDate = Date()

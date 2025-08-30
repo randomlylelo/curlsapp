@@ -15,6 +15,61 @@ struct WorkoutView: View {
     @StateObject private var workoutManager = WorkoutManager.shared
     @StateObject private var templateStorage = TemplateStorageService.shared
     
+    // Drag and drop state
+    @State private var isReorderingMode = false
+    @State private var draggedTemplateIndex: Int? = nil
+    @State private var dropTargetIndex: Int? = nil
+    @State private var dragOffset: CGSize = .zero
+    
+    private func calculateDropTarget(dragX: CGFloat, dragY: CGFloat) -> Int? {
+        guard !templateStorage.templates.isEmpty else { return nil }
+        
+        let cardWidth: CGFloat = (UIScreen.main.bounds.width - 40 - 12) / 2 // padding and spacing
+        let cardHeight: CGFloat = 140
+        let cardSpacing: CGFloat = 12
+        
+        let column = dragX < 0 ? 0 : Int((dragX + cardWidth / 2) / (cardWidth + cardSpacing))
+        let row = Int((dragY + cardHeight / 2) / (cardHeight + cardSpacing))
+        
+        let dropIndex = min(row * 2 + column, templateStorage.templates.count - 1)
+        
+        if let draggedIndex = draggedTemplateIndex {
+            if dropIndex == draggedIndex {
+                return nil
+            }
+        }
+        
+        return max(0, dropIndex)
+    }
+    
+    private func handleDragChanged(draggedIndex: Int, translation: CGSize) {
+        dragOffset = translation
+        
+        if draggedTemplateIndex != nil {
+            dropTargetIndex = calculateDropTarget(dragX: translation.width, dragY: translation.height)
+        }
+    }
+    
+    private func handleDragEnded(draggedIndex: Int) {
+        if let draggedIndex = draggedTemplateIndex,
+           let dropIndex = dropTargetIndex,
+           draggedIndex != dropIndex,
+           draggedIndex < templateStorage.templates.count,
+           dropIndex < templateStorage.templates.count {
+            
+            withAnimation(AnimationConstants.springAnimation) {
+                templateStorage.reorderTemplate(from: draggedIndex, to: dropIndex)
+            }
+        }
+        
+        withAnimation(AnimationConstants.springAnimation) {
+            isReorderingMode = false
+            draggedTemplateIndex = nil
+            dropTargetIndex = nil
+            dragOffset = .zero
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -54,7 +109,7 @@ struct WorkoutView: View {
                                 GridItem(.flexible(), spacing: 12),
                                 GridItem(.flexible(), spacing: 12)
                             ], spacing: 12) {
-                                ForEach(templateStorage.templates) { template in
+                                ForEach(Array(templateStorage.templates.enumerated()), id: \.element.id) { index, template in
                                     TemplateCard(
                                         template: template,
                                         onTap: {
@@ -76,7 +131,46 @@ struct WorkoutView: View {
                                         onDuplicate: {
                                             templateEditMode = .duplicate(template)
                                             showingTemplateEditor = true
+                                        },
+                                        isDisabled: isReorderingMode
+                                    )
+                                    .scaleEffect(draggedTemplateIndex == index ? 1.05 : 1.0)
+                                    .opacity(draggedTemplateIndex == index ? 0.8 : 1.0)
+                                    .offset(draggedTemplateIndex == index ? dragOffset : .zero)
+                                    .zIndex(draggedTemplateIndex == index ? 1 : 0)
+                                    .overlay {
+                                        // Drop target indicator
+                                        if let dropIndex = dropTargetIndex, dropIndex == index, draggedTemplateIndex != index {
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(Color.blue, lineWidth: 2)
+                                                .background(Color.blue.opacity(0.1))
+                                                .clipShape(RoundedRectangle(cornerRadius: 12))
                                         }
+                                    }
+                                    .simultaneousGesture(
+                                        LongPressGesture(minimumDuration: 0.5)
+                                            .onEnded { _ in
+                                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                                impactFeedback.impactOccurred()
+                                                
+                                                draggedTemplateIndex = index
+                                                withAnimation(AnimationConstants.springAnimation) {
+                                                    isReorderingMode = true
+                                                }
+                                            }
+                                    )
+                                    .simultaneousGesture(
+                                        DragGesture(coordinateSpace: .local)
+                                            .onChanged { gesture in
+                                                if isReorderingMode && draggedTemplateIndex == index {
+                                                    handleDragChanged(draggedIndex: index, translation: gesture.translation)
+                                                }
+                                            }
+                                            .onEnded { _ in
+                                                if isReorderingMode && draggedTemplateIndex == index {
+                                                    handleDragEnded(draggedIndex: index)
+                                                }
+                                            }
                                     )
                                 }
                             }
@@ -87,6 +181,7 @@ struct WorkoutView: View {
                     Spacer(minLength: 100)
                 }
             }
+            .scrollDisabled(isReorderingMode)
             .padding(.top)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
