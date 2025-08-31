@@ -36,7 +36,7 @@ struct TemplateCard: View {
                         
                         // Invisible spacer to prevent text overlap with menu button
                         Color.clear
-                            .frame(width: 24, height: 24)
+                            .frame(width: 44, height: 24)
                     }.padding(.bottom, 2)
                     
                     VStack(alignment: .leading, spacing: 2) {
@@ -72,7 +72,7 @@ struct TemplateCard: View {
             .buttonStyle(CustomPressedButtonStyle(isPressed: $isPressed))
             .animation(AnimationConstants.quickAnimation, value: isPressed)
             
-            // Clean menu button - iOS native pattern
+            // Enhanced menu button with proper touch target
             Menu {
                 Button("Edit Template", systemImage: "pencil", action: onEdit)
                 Button("Duplicate Template", systemImage: "doc.on.doc", action: onDuplicate)
@@ -80,16 +80,18 @@ struct TemplateCard: View {
                 Button("Delete Template", systemImage: "trash", role: .destructive, action: onDelete)
             } label: {
                 Image(systemName: "ellipsis")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.secondary)
-                    .frame(width: 20, height: 20)
-                    .contentShape(Rectangle())
+                    .frame(width: 44, height: 44)
+                    .contentShape(Circle())
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
             .disabled(isDisabled)
-            .padding(.top, 16)
-            .padding(.trailing, 16)
+            .padding(.top, 8)
+            .padding(.trailing, 8)
+            .accessibilityLabel("Template options")
+            .accessibilityHint("Shows menu with edit, duplicate, and delete options")
         }
     }
 }
